@@ -1,0 +1,99 @@
+import { state, LOGO_URL } from '../config/config.js';
+import { escapeHTML } from '../utils/utils.js';
+
+export function renderSettingsPage() {
+  return `
+    <section class="page settings-page">
+      <!-- Top Title -->
+      <div class="settings-header">
+        <h1 class="settings-title">Settings</h1>
+      </div>
+
+      <!-- Hero Icon + General Info -->
+      <div class="settings-hero">
+        <div class="settings-hero-icon-box">
+          <i class="fa-solid fa-gear"></i>
+        </div>
+        <h2 class="settings-hero-heading">General</h2>
+        <p class="settings-hero-description">
+          Manage your overall setup and preferences for iMusic, such as Themes, Color modes, Music playback settings etc.
+        </p>
+      </div>
+
+      <!-- Grouped Settings List -->
+      <div class="settings-group-list">
+        <!-- 1. Theme -->
+        <button class="settings-item-row" data-action="open-settings-theme" type="button">
+          <div class="settings-item-icon" style="background: #0a84ff;">
+            <i class="fa-solid fa-sun"></i>
+          </div>
+          <div class="settings-item-content">
+            <span class="settings-item-title">Theme</span>
+            <span class="settings-item-subtitle">${state.appTheme || 'Dark (OLED)'}</span>
+          </div>
+          <i class="fa-solid fa-chevron-right settings-item-chevron"></i>
+        </button>
+
+        <!-- 2. App UI -->
+        <button class="settings-item-row" data-action="open-settings-ui" type="button">
+          <div class="settings-item-icon" style="background: #ff9f0a;">
+            <i class="fa-solid fa-mobile-screen"></i>
+          </div>
+          <div class="settings-item-content">
+            <span class="settings-item-title">App UI</span>
+            <span class="settings-item-subtitle">${state.liquidGlass !== false ? 'Liquid Glass (ON)' : 'Liquid Glass (High Performance)'}</span>
+          </div>
+          <i class="fa-solid fa-chevron-right settings-item-chevron"></i>
+        </button>
+
+        <!-- 3. Music & Playback -->
+        <button class="settings-item-row" data-action="open-settings-playback" type="button">
+          <div class="settings-item-icon" style="background: #ff2d55;">
+            <i class="fa-solid fa-music"></i>
+          </div>
+          <div class="settings-item-content">
+            <span class="settings-item-title">Music &amp; Playback</span>
+            <span class="settings-item-subtitle">Quality, Gapless, Sleep Timer</span>
+          </div>
+          <i class="fa-solid fa-chevron-right settings-item-chevron"></i>
+        </button>
+
+        <!-- 4. Others -->
+        <button class="settings-item-row" data-action="open-settings-others" type="button">
+          <div class="settings-item-icon" style="background: #8e8e93;">
+            <i class="fa-solid fa-gear"></i>
+          </div>
+          <div class="settings-item-content">
+            <span class="settings-item-title">Others</span>
+            <span class="settings-item-subtitle">Cache, Storage, Data Saver</span>
+          </div>
+          <i class="fa-solid fa-chevron-right settings-item-chevron"></i>
+        </button>
+
+        <!-- 5. Backup & Restore -->
+        <button class="settings-item-row" data-action="open-settings-backup" type="button">
+          <div class="settings-item-icon" style="background: #34c759;">
+            <i class="fa-solid fa-rotate"></i>
+          </div>
+          <div class="settings-item-content">
+            <span class="settings-item-title">Backup &amp; Restore</span>
+            <span class="settings-item-subtitle">Export/Import Playlists &amp; Library</span>
+          </div>
+          <i class="fa-solid fa-chevron-right settings-item-chevron"></i>
+        </button>
+
+        <!-- 6. About -->
+        <button class="settings-item-row" data-action="open-settings-about" type="button">
+          <div class="settings-item-icon" style="background: #636366;">
+            <i class="fa-solid fa-circle-info"></i>
+          </div>
+          <div class="settings-item-content">
+            <span class="settings-item-title">About</span>
+            <span class="settings-item-subtitle">Version, Credits, Shortcuts</span>
+          </div>
+          <i class="fa-solid fa-chevron-right settings-item-chevron"></i>
+        </button>
+      </div>
+    </section>
+  `;
+}

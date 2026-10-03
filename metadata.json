@@ -1,0 +1,6 @@
+{
+  "name": "Pawtify",
+  "description": "A privacy-friendly, browser-based music streaming player featuring local playlists, liquid glass UI, and distraction-free audio.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
