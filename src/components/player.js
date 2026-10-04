@@ -22,6 +22,8 @@ import {
   renderPlayerBar,
   renderMiniPlayer,
   renderSidebarPlaylists,
+  updateActiveTrackHighlighting,
+  syncControlStates,
 } from './playerBar.js';
 import { getNextSong } from '../services/apiMapping.js';
 import { renderFullscreenPlayer } from './fullscreen.js';
@@ -71,7 +73,13 @@ export async function play(song, queue = null, autoplay = true) {
   addRecentlyPlayed(playableSong.id);
   persistPlayer();
   await loadRecommendations();
-  renderCurrentRoute();
+  renderPlayerBar(true);
+  renderMiniPlayer(true);
+  updateActiveTrackHighlighting();
+  refreshPlaybackUI(true);
+  if (state.fullscreenPlayer) {
+    renderFullscreenPlayer(true);
+  }
 }
 
 export function pause() {
@@ -232,10 +240,23 @@ export function toggleFavorite(song) {
     showToast('Added to favorites');
   }
   saveJSON(STORAGE.FAVORITES, state.favorites);
-  renderCurrentRoute();
-  renderPlayerBar();
-  renderMiniPlayer();
-  renderFullscreenPlayer();
+  
+  // Fast in-place DOM updates for all favorite buttons
+  const isFav = state.favorites.some((item) => item.id === song.id);
+  document.querySelectorAll(`[data-action="toggle-favorite"][data-song-id="${song.id}"]`).forEach((btn) => {
+    btn.classList.toggle('active', isFav);
+    const icon = btn.querySelector('i');
+    if (icon) {
+      icon.className = isFav ? 'fa-solid fa-heart' : 'fa-regular fa-heart';
+    }
+  });
+
+  // Re-render if on favorites playlist
+  if (state.route.name === 'playlist' && state.route.playlistId === 'favorites') {
+    renderCurrentRoute();
+  } else {
+    syncControlStates();
+  }
 }
 
 export function toggleRepeat() {

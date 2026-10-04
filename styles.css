@@ -651,6 +651,7 @@ img {
   display: flex;
   flex-direction: column;
   gap: 3px;
+  contain: layout;
 }
 
 .song-row {
@@ -661,11 +662,13 @@ img {
   padding: 8px 14px;
   border-radius: var(--radius-md);
   border: 1px solid transparent;
+  contain: layout style;
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 56px;
   transition:
-    background 0.2s ease,
-    border-color 0.2s ease,
-    box-shadow 0.2s ease,
-    transform 0.15s cubic-bezier(0.2, 0, 0, 1);
+    background 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
   cursor: pointer;
 }
 
@@ -676,9 +679,96 @@ img {
 }
 
 .song-row.active {
-  background: linear-gradient(90deg, rgba(29, 185, 84, 0.18) 0%, rgba(29, 185, 84, 0.04) 100%);
-  border: 1px solid rgba(29, 185, 84, 0.28);
-  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.12), 0 2px 10px -2px rgba(29, 185, 84, 0.2);
+  background: linear-gradient(90deg, rgba(250, 45, 72, 0.16) 0%, rgba(250, 45, 72, 0.04) 100%);
+  border: 1px solid rgba(250, 45, 72, 0.28);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.12), 0 2px 12px -2px rgba(250, 45, 72, 0.25);
+  animation: activeRowBreathingPulse 4.2s ease-in-out infinite;
+}
+
+@keyframes activeRowBreathingPulse {
+  0%, 100% {
+    background: linear-gradient(90deg, rgba(250, 45, 72, 0.12) 0%, rgba(250, 45, 72, 0.02) 100%);
+    border-color: rgba(250, 45, 72, 0.2);
+    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.08), 0 2px 10px -2px rgba(250, 45, 72, 0.15);
+  }
+  50% {
+    background: linear-gradient(90deg, rgba(250, 45, 72, 0.22) 0%, rgba(250, 45, 72, 0.06) 100%);
+    border-color: rgba(250, 45, 72, 0.42);
+    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.16), 0 4px 18px -2px rgba(250, 45, 72, 0.35);
+  }
+}
+
+/* Subtle, slow-breathing animated equalizer indicator */
+.active-track-breathing-pill {
+  display: inline-flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 2px;
+  height: 16px;
+  width: 16px;
+  vertical-align: middle;
+}
+
+.active-track-breathing-pill .breathe-bar {
+  display: block;
+  width: 2.5px;
+  border-radius: 9999px;
+  background: var(--green);
+  transform-origin: bottom center;
+  animation: slowBreatheWave 3.2s ease-in-out infinite;
+}
+
+.active-track-breathing-pill .breathe-bar.b-1 {
+  height: 12px;
+  animation-delay: 0s;
+}
+
+.active-track-breathing-pill .breathe-bar.b-2 {
+  height: 16px;
+  animation-delay: 0.5s;
+}
+
+.active-track-breathing-pill .breathe-bar.b-3 {
+  height: 9px;
+  animation-delay: 1s;
+}
+
+@keyframes slowBreatheWave {
+  0%, 100% {
+    transform: scaleY(0.35);
+    opacity: 0.65;
+    filter: drop-shadow(0 0 2px rgba(250, 45, 72, 0.3));
+  }
+  50% {
+    transform: scaleY(1.0);
+    opacity: 1;
+    filter: drop-shadow(0 0 8px rgba(250, 45, 72, 0.85));
+  }
+}
+
+.active-track-indicator {
+  display: inline-block;
+  color: var(--green);
+  animation: activeIndicatorPulse 3.2s ease-in-out infinite;
+}
+
+@keyframes activeIndicatorPulse {
+  0%, 100% {
+    transform: scale(0.94);
+    opacity: 0.75;
+    filter: drop-shadow(0 0 2px rgba(250, 45, 72, 0.3));
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 1;
+    filter: drop-shadow(0 0 10px rgba(250, 45, 72, 0.85));
+  }
+}
+
+.active-track-title {
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  text-shadow: 0 0 12px rgba(250, 45, 72, 0.4);
 }
 
 .song-index {
@@ -921,6 +1011,8 @@ img {
   align-items: center;
   gap: 16px;
   height: var(--player-height);
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
 
 .player-bar-left {
@@ -1187,15 +1279,19 @@ img {
   align-items: center;
   gap: 10px;
   pointer-events: none;
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
 
 .mobile-nav-island {
+  position: relative;
+  overflow: hidden;
   flex: 1;
   min-width: 0;
   height: 64px;
   border-radius: 9999px;
-  background: rgba(28, 30, 29, 0.78);
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.03) 40%, rgba(18, 22, 20, 0.82) 100%);
+  background: rgba(20, 20, 22, 0.85);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.03) 40%, rgba(18, 18, 20, 0.88) 100%);
   backdrop-filter: blur(32px) saturate(190%);
   -webkit-backdrop-filter: blur(32px) saturate(190%);
   border: 1px solid rgba(255, 255, 255, 0.16);
@@ -1206,9 +1302,108 @@ img {
   padding: 4px;
   pointer-events: auto;
   user-select: none;
+  touch-action: pan-y pinch-zoom;
+}
+
+/* SMART ELASTIC CAPSULE (GLOW + LIQUID GLASS + SPRING-BACK) */
+.elastic-capsule {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 0;
+  z-index: 1;
+  border-radius: 9999px;
+  pointer-events: none;
+  background: rgba(255, 255, 255, 0.22);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.32) 0%, rgba(255, 255, 255, 0.14) 40%, rgba(255, 255, 255, 0.24) 100%);
+  backdrop-filter: blur(32px) saturate(210%);
+  -webkit-backdrop-filter: blur(32px) saturate(210%);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  box-shadow:
+    inset 0 1.5px 2px rgba(255, 255, 255, 0.65),
+    inset 0 -1.5px 2px rgba(0, 0, 0, 0.28),
+    0 4px 18px rgba(0, 0, 0, 0.5),
+    0 0 20px rgba(255, 255, 255, 0.28);
+  transform-origin: center center;
+  will-change: transform, box-shadow;
+  transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease;
+}
+
+/* Outer Specular Glow Halo */
+.elastic-capsule .capsule-glow-halo {
+  position: absolute;
+  inset: -8px;
+  border-radius: 9999px;
+  background: radial-gradient(circle at center, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.15) 45%, transparent 72%);
+  opacity: 0.7;
+  filter: blur(10px);
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+/* Curved Liquid Sheen Layer on Top Hemisphere */
+.elastic-capsule .capsule-liquid-layer {
+  position: absolute;
+  top: 1px;
+  left: 3px;
+  right: 3px;
+  height: 48%;
+  border-radius: 9999px 9999px 40% 40%;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.48) 0%, rgba(255, 255, 255, 0.08) 75%, transparent 100%);
+  pointer-events: none;
+}
+
+/* Pressed State */
+.elastic-capsule.is-pressed {
+  box-shadow:
+    inset 0 2px 3px rgba(255, 255, 255, 0.75),
+    0 2px 10px rgba(0, 0, 0, 0.5),
+    0 0 24px rgba(255, 255, 255, 0.45);
+}
+
+.elastic-capsule.is-pressed .capsule-glow-halo {
+  opacity: 0.9;
+  transform: scale(1.1);
+}
+
+/* Stretched Drag State with intensified Liquid Glow */
+.elastic-capsule.is-stretching {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.38) 0%, rgba(255, 255, 255, 0.18) 40%, rgba(255, 255, 255, 0.3) 100%);
+  box-shadow:
+    inset 0 2px 3.5px rgba(255, 255, 255, 0.8),
+    inset 0 -1.5px 2px rgba(0, 0, 0, 0.35),
+    0 8px 28px rgba(0, 0, 0, 0.6),
+    0 0 32px rgba(255, 255, 255, 0.55),
+    0 0 55px rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.55);
+}
+
+.elastic-capsule.is-stretching .capsule-glow-halo {
+  opacity: 1;
+  transform: scale(1.28);
+  filter: blur(12px);
+}
+
+/* Natural Spring-Back Animation */
+.elastic-capsule.springing-back {
+  animation: naturalSpringSettle 0.46s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes naturalSpringSettle {
+  0% {
+    filter: brightness(1.35) drop-shadow(0 0 12px rgba(255, 255, 255, 0.6));
+  }
+  50% {
+    filter: brightness(1.15) drop-shadow(0 0 6px rgba(255, 255, 255, 0.35));
+  }
+  100% {
+    filter: brightness(1) drop-shadow(0 0 0px transparent);
+  }
 }
 
 .mobile-nav-item {
+  position: relative;
+  z-index: 2;
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -1220,9 +1415,9 @@ img {
   font-weight: 500;
   height: calc(100% - 6px);
   border-radius: 9999px;
-  border: 1px solid transparent;
+  border: none;
   background: transparent;
-  transition: all 0.22s cubic-bezier(0.2, 0.9, 0.3, 1);
+  transition: color 0.2s ease, transform 0.15s ease;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
@@ -1238,19 +1433,18 @@ img {
   opacity: 0.85;
 }
 
-/* Active State: The Rounded Frosted Pill Capsule covering full 1/3 slot from Screenshot */
 .mobile-nav-item.active {
   color: #ffffff;
-  background: rgba(255, 255, 255, 0.22);
-  border: 1px solid rgba(255, 255, 255, 0.24);
-  box-shadow: inset 0 1px 1.5px rgba(255, 255, 255, 0.35), 0 4px 14px rgba(0, 0, 0, 0.35);
   font-weight: 700;
+  background: transparent;
+  border: none;
+  box-shadow: none;
 }
 
 .mobile-nav-item.active i {
   color: #ffffff;
   transform: translateY(-1px);
-  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.45));
+  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.5));
 }
 
 .mobile-nav-item.active span {
@@ -1613,6 +1807,8 @@ img {
 
 .home-section {
   margin-bottom: 32px;
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 260px;
 }
 
 .home-section-header {
@@ -1636,6 +1832,9 @@ img {
   padding-bottom: 8px;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
+  contain: layout paint;
+  will-change: scroll-position;
+  scroll-behavior: smooth;
 }
 
 .home-scroll::-webkit-scrollbar {
@@ -6845,6 +7044,121 @@ body.on-search-route .mini-player {
   place-items: center;
   color: #ffffff;
   font-size: 0.7rem;
+}
+
+/* ============ MULTI-SOURCE MUSIC SWITCHER & REGIONAL ACCESS ============ */
+.source-live-indicator {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 8px #10b981;
+  animation: liveSourcePulse 2.5s ease-in-out infinite;
+}
+
+@keyframes liveSourcePulse {
+  0%, 100% {
+    opacity: 0.7;
+    transform: scale(0.9);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+    box-shadow: 0 0 12px #10b981;
+  }
+}
+
+.music-source-pill-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 4px 2px 14px 2px;
+  margin-bottom: 8px;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.music-source-pill-bar::-webkit-scrollbar {
+  display: none;
+}
+
+.source-pill {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 14px;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.source-pill i {
+  font-size: 0.85rem;
+  opacity: 0.85;
+}
+
+.source-pill:hover {
+  background: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
+.source-pill:active {
+  transform: scale(0.95);
+}
+
+.source-pill.active {
+  background: #ffffff;
+  color: #000000;
+  border-color: #ffffff;
+  font-weight: 700;
+  box-shadow: 0 4px 18px rgba(255, 255, 255, 0.35), inset 0 1px 1px rgba(255, 255, 255, 0.8);
+}
+
+.source-pill.active i {
+  color: #000000;
+  opacity: 1;
+}
+
+.scroll-card-source-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  padding: 3px 7px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+  font-size: 0.64rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  pointer-events: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.quick-pick-source-tag {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.68rem;
+  font-weight: 600;
 }
 
 

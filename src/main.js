@@ -18,6 +18,8 @@ import './components/fullscreen.js';
 import './components/artistProfile.js';
 import './components/queuePanel.js';
 import { setupSwipeGestures } from './core/gestures.js';
+import { initElasticCapsule } from './core/elasticCapsule.js';
 
 initApp();
 setupSwipeGestures();
+initElasticCapsule();

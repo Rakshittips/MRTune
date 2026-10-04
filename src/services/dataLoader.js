@@ -8,6 +8,7 @@ import {
 } from './youtube.js';
 import { saveJSON } from '../utils/utils.js';
 import { getSongRecommendations } from './apiMapping.js';
+import { INDIA_TOP_TRACKS, INTERNATIONAL_TOP_TRACKS } from '../config/musicSources.js';
 
 export function getDiscoveryCategories() {
   const categories = [...DISCOVERY_CATEGORIES];
@@ -91,14 +92,17 @@ export async function loadTrendingSongs(forceRefresh = false) {
     const feed = await Promise.all(
       results.map(async (res, idx) => {
         try {
-          if (res.status === 'fulfilled') {
-            const data = await res.value.json();
-            const songs = parseSafe(data);
-            return {
-              title: selectedCategories[idx].title,
-              id: `feed-${idx}`,
-              songs: dedupeSongs(songs),
-            };
+          if (res.status === 'fulfilled' && res.value.ok) {
+            const contentType = res.value.headers?.get('content-type') || '';
+            if (contentType.includes('application/json')) {
+              const data = await res.value.json();
+              const songs = parseSafe(data);
+              return {
+                title: selectedCategories[idx].title,
+                id: `feed-${idx}`,
+                songs: dedupeSongs(songs),
+              };
+            }
           }
         } catch (e) {
           console.warn('Failed to parse feed category JSON', e);
@@ -112,6 +116,27 @@ export async function loadTrendingSongs(forceRefresh = false) {
     );
 
     state.feedCategories = feed.filter((cat) => cat.songs.length > 0);
+
+    // Fallback if running on static host (GitHub Pages) with no active backend
+    if (!state.feedCategories.length) {
+      state.feedCategories = [
+        {
+          id: 'feed-india',
+          title: 'Top Hits in India',
+          songs: INDIA_TOP_TRACKS,
+        },
+        {
+          id: 'feed-global',
+          title: 'Global Billboard Hot 100',
+          songs: INTERNATIONAL_TOP_TRACKS,
+        },
+        {
+          id: 'feed-punjabi',
+          title: 'Punjabi & Desi Beats',
+          songs: INDIA_TOP_TRACKS.filter((s) => s.genre?.includes('Punjabi')),
+        },
+      ];
+    }
 
     const all = dedupeSongs(state.feedCategories.flatMap((c) => c.songs));
     rememberSongs(all);

@@ -57,11 +57,15 @@ export function renderHomeGridCard(song, source, playlistId = '') {
 
 export function renderHomeScrollCard(song, index, source, playlistId = '') {
   if (!song) return '';
+  const badgeHTML = song.sourceLabel
+    ? `<span class="scroll-card-source-badge">${escapeHTML(song.sourceLabel)}</span>`
+    : '';
   return `
     <article class="home-scroll-card" data-action="play-song" data-song-id="${escapeHTML(song.id)}" data-source="${escapeHTML(source)}" data-playlist-id="${escapeHTML(playlistId)}" type="button">
       <div class="scroll-cover-wrap" style="position: relative;">
         <img src="${escapeHTML(song.coverUrl)}" alt="${escapeHTML(song.title)}" loading="lazy" />
         <div class="ios-cover-badge"><i class="fa-solid fa-play"></i></div>
+        ${badgeHTML}
       </div>
       <h3>${escapeHTML(song.title)}</h3>
       <p>${escapeHTML(song.artist)}</p>
@@ -516,14 +520,25 @@ export function renderSongRow(song, index, source, playlistId = '') {
   if (!song) return '';
   const active = state.currentSong?.id === song.id;
   const isFav = state.favorites.some((item) => item.id === song.id);
+  const activeIndicatorHTML = active
+    ? (state.isPlaying
+        ? `<div class="active-track-breathing-pill" aria-label="Now playing" title="Now playing">
+             <span class="breathe-bar b-1"></span>
+             <span class="breathe-bar b-2"></span>
+             <span class="breathe-bar b-3"></span>
+           </div>`
+        : `<i class="fa-solid fa-play active-track-indicator" style="font-size:0.75rem;"></i>`
+      )
+    : `<span>${index}</span>`;
+
   return `
      <div class="song-row ${active ? 'active' : ''}" data-action="play-song" data-song-id="${escapeHTML(song.id)}" data-source="${escapeHTML(source)}" data-playlist-id="${escapeHTML(playlistId)}" type="button">
        <div class="song-index">
-         ${active && state.isPlaying ? '<i class="fa-solid fa-volume-high" style="font-size:0.75rem;"></i>' : `<span>${index}</span>`}
+         ${activeIndicatorHTML}
        </div>
        <img class="song-cover-sm" src="${escapeHTML(song.coverUrl)}" alt="" />
        <div class="song-info">
-         <div class="song-title">${escapeHTML(song.title)}</div>
+         <div class="song-title ${active ? 'active-track-title' : ''}">${escapeHTML(song.title)}</div>
          <div class="song-artist" data-action="open-artist-profile" data-artist="${escapeHTML(song.artist)}" onclick="event.stopPropagation();">${escapeHTML(song.artist)}</div>
        </div>
        <div class="song-duration">${escapeHTML(song.duration || '0:00')}</div>

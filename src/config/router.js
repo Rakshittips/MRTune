@@ -20,9 +20,16 @@ export function parseRoute() {
   if (hash) {
     routePath = hash.startsWith('/') ? hash : `/${hash}`;
   }
-  // 2. Check Pathname if not root or static file (handles direct URL navigation without hash)
-  else if (pathname && pathname !== '/' && !pathname.includes('.')) {
-    routePath = pathname.startsWith('/') ? pathname : `/${pathname}`;
+  // 2. Check Pathname: handles both direct routes and GitHub Pages subfolder repos (e.g. /my-repo/search)
+  else if (pathname) {
+    const segments = pathname.split('/').filter(Boolean);
+    const knownRoutes = ['search', 'library', 'settings', 'you', 'profile', 'song', 'track', 'playlist'];
+    const matchedIndex = segments.findIndex((seg) => knownRoutes.includes(seg.toLowerCase()));
+    if (matchedIndex !== -1) {
+      routePath = '/' + segments.slice(matchedIndex).join('/');
+    } else {
+      routePath = '/';
+    }
   }
   // 3. Fallback to search parameters (?song= or ?track= or ?v= or ?playlist=)
   else if (

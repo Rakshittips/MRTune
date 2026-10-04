@@ -94,6 +94,15 @@ export function bindGlobalEvents() {
     const playlistId = actionNode.dataset.playlistId || null;
 
     try {
+      if (action === 'select-music-source') {
+        event.preventDefault();
+        const sourceId = actionNode.dataset.sourceId;
+        if (sourceId) {
+          state.activeMusicSource = sourceId;
+          renderCurrentRoute();
+        }
+        return;
+      }
       if (action === 'set-search-scope') {
         event.preventDefault();
         state.searchScope = actionNode.dataset.scope || 'online';

@@ -495,6 +495,8 @@ Object.assign(state, {
   searchSuggestions: [],
   searchTab: 'songs',
   libraryTab: 'recent',
+  activeMusicSource: 'all',
+  streamEngine: 'auto',
   liquidGlass: localStorage.getItem('pawtify_liquid_glass') !== 'false',
   searchLoading: false,
   searchResults: { songs: [], artists: [] },

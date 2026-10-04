@@ -1,4 +1,5 @@
-import { state, showToast, STORAGE, songCatalog } from '../config/config.js';
+import { state, showToast, STORAGE, songCatalog, CURATED_IOS_TRACKS, DAILY_CAT_MIXES } from '../config/config.js';
+import { INDIA_TOP_TRACKS, INTERNATIONAL_TOP_TRACKS } from '../config/musicSources.js';
 import { renderOverlay } from '../components/overlay.js';
 import { togglePlay, play } from '../components/player.js';
 import { saveJSON } from '../utils/utils.js';
@@ -207,6 +208,12 @@ export function seedCatalog() {
   rememberSongs(state.lofiSongs);
   rememberSongs(state.classicalSongs);
   rememberSongs(state.recommendedSongs);
+  rememberSongs(CURATED_IOS_TRACKS);
+  rememberSongs(INDIA_TOP_TRACKS);
+  rememberSongs(INTERNATIONAL_TOP_TRACKS);
+  if (Array.isArray(DAILY_CAT_MIXES)) {
+    DAILY_CAT_MIXES.forEach((mix) => rememberSongs(mix.songs));
+  }
   if (state.feedCategories)
     state.feedCategories.forEach((cat) => rememberSongs(cat.songs));
   if (state.currentSong) rememberSongs([state.currentSong]);

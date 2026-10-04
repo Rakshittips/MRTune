@@ -5,6 +5,7 @@ import { getSongById } from '../core/details.js';
 import { renderFullscreenPlayer } from './fullscreen.js';
 import { renderQueuePanel } from './queuePanel.js';
 import { updateWavyProgress } from './wavyProgress.js';
+import { syncCapsuleToActiveRoute } from '../core/elasticCapsule.js';
 
 export function renderPlayerBar(force = false) {
   if (!playerBar) return;
@@ -203,85 +204,76 @@ export function markActiveNav() {
     if (active) btn.classList.add('active');
     else btn.classList.remove('active');
   });
+
+  try {
+    syncCapsuleToActiveRoute(true);
+  } catch (_) {}
 }
 
-export function refreshPlaybackUI() {
-  const isSeeking = !!state.isSeeking;
+let lastRenderedPlaying = null;
+let lastRenderedLoading = null;
+let lastRenderedVol = null;
+let lastProgressVal = -1;
 
-  if (!isSeeking) {
-    const seek = document.getElementById('seekbar');
-    if (seek) {
-      const maxVal = Math.max(
-        1,
-        Math.floor(state.duration || state.currentSong?.durationSec || 1)
-      );
-      seek.max = String(maxVal);
-      seek.value = String(Math.floor(state.progress || 0));
-      const pct =
-        maxVal > 0 ? (Math.floor(state.progress || 0) / maxVal) * 100 : 0;
-      seek.style.background = `linear-gradient(90deg, var(--green) 0%, var(--green-hover) ${pct}%, rgba(255,255,255,0.15) ${pct}%)`;
+export function updateActiveTrackHighlighting() {
+  const currentId = state.currentSong?.id;
+  const isPlaying = state.isPlaying;
+
+  // Active track on body
+  document.body.classList.toggle('has-active-track', !!state.currentSong);
+
+  // Fast targeted update for song rows
+  const songRows = document.querySelectorAll('.song-row');
+  songRows.forEach((row) => {
+    const isThis = row.dataset.songId === currentId;
+    if (row.classList.contains('active') !== isThis) {
+      row.classList.toggle('active', isThis);
     }
-    const fsSeek = document.getElementById('fs-seekbar');
-    if (fsSeek) {
-      const fsMax = Math.max(
-        1,
-        Math.floor(state.duration || state.currentSong?.durationSec || 1)
-      );
-      fsSeek.max = String(fsMax);
-      fsSeek.value = String(Math.floor(state.progress || 0));
-      const fsPct =
-        fsMax > 0 ? (Math.floor(state.progress || 0) / fsMax) * 100 : 0;
-      fsSeek.style.background = `linear-gradient(90deg, var(--green) 0%, var(--green-hover) ${fsPct}%, rgba(255,255,255,0.15) ${fsPct}%)`;
+    const titleEl = row.querySelector('.song-title');
+    if (titleEl && titleEl.classList.contains('active-track-title') !== isThis) {
+      titleEl.classList.toggle('active-track-title', isThis);
     }
 
-    const currentLabel = document.getElementById('time-current');
-    if (currentLabel) currentLabel.textContent = formatTime(state.progress);
-    const fsCurrentLabel = document.getElementById('fs-time-current');
-    if (fsCurrentLabel) fsCurrentLabel.textContent = formatTime(state.progress);
-  }
-  
-  const miniFill = document.querySelector('.mini-progress-fill');
-  if (miniFill) {
-    const maxVal = Math.max(1, Math.floor(state.duration || state.currentSong?.durationSec || 1));
-    const pct = maxVal > 0 ? (Math.floor(state.progress || 0) / maxVal) * 100 : 0;
-    miniFill.style.width = `${pct}%`;
-  }
-
-  const totalLabel = document.getElementById('time-total');
-  const durSec = state.duration || state.currentSong?.durationSec || 0;
-  if (totalLabel) totalLabel.textContent = formatTime(durSec);
-  const fsTotalLabel = document.getElementById('fs-time-total');
-  if (fsTotalLabel) fsTotalLabel.textContent = formatTime(durSec);
-
-  const playToggles = document.querySelectorAll('[data-action="toggle-play"]');
-  playToggles.forEach((playToggle) => {
-    if (playToggle && playToggle.querySelector('i')) {
-      if (state.isLoading) {
-        playToggle.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
-      } else {
-        playToggle.innerHTML = state.isPlaying
-          ? '<i class="fa-solid fa-pause"></i>'
-          : '<i class="fa-solid fa-play"></i>';
+    const indexEl = row.querySelector('.song-index');
+    if (indexEl) {
+      if (isThis) {
+        indexEl.innerHTML = isPlaying
+          ? `<div class="active-track-breathing-pill" aria-label="Now playing"><span class="breathe-bar b-1"></span><span class="breathe-bar b-2"></span><span class="breathe-bar b-3"></span></div>`
+          : `<i class="fa-solid fa-play active-track-indicator" style="font-size:0.75rem;"></i>`;
       }
     }
   });
 
-  const volumeSlider = document.getElementById('volume-slider');
-  if (volumeSlider && document.activeElement !== volumeSlider) {
-    volumeSlider.value = String(Math.round(state.volume * 100));
-    const volPct = Math.round(state.volume * 100);
-    volumeSlider.style.background = `linear-gradient(90deg, var(--green) 0%, var(--green-hover) ${volPct}%, rgba(255,255,255,0.15) ${volPct}%)`;
-  }
-  const fsVol = document.getElementById('fs-volume-slider');
-  if (fsVol && document.activeElement !== fsVol) {
-    fsVol.value = String(Math.round(state.volume * 100));
-    const volPct = Math.round(state.volume * 100);
-    fsVol.style.background = `linear-gradient(90deg, var(--green) 0%, var(--green-hover) ${volPct}%, rgba(255,255,255,0.15) ${volPct}%)`;
-  }
+  // Fast targeted update for quick pick rows
+  const pickRows = document.querySelectorAll('.quick-pick-row');
+  pickRows.forEach((row) => {
+    const isThis = row.dataset.songId === currentId;
+    if (row.classList.contains('active') !== isThis) {
+      row.classList.toggle('active', isThis);
+    }
+    const titleEl = row.querySelector('.quick-pick-title');
+    if (titleEl && titleEl.classList.contains('active-track-title') !== isThis) {
+      titleEl.classList.toggle('active-track-title', isThis);
+    }
 
-  // Ensure active-track class is kept in sync on document body
-  document.body.classList.toggle('has-active-track', !!state.currentSong);
+    const thumbBox = row.querySelector('.quick-pick-thumb-box');
+    if (thumbBox) {
+      let overlay = thumbBox.querySelector('.quick-pick-playing-overlay');
+      if (isThis) {
+        if (!overlay) {
+          overlay = document.createElement('div');
+          overlay.className = 'quick-pick-playing-overlay';
+          thumbBox.appendChild(overlay);
+        }
+        overlay.innerHTML = `<i class="fa-solid ${isPlaying ? 'fa-pause' : 'fa-play'} active-track-indicator"></i>`;
+      } else if (overlay) {
+        overlay.remove();
+      }
+    }
+  });
+}
 
+export function syncControlStates() {
   // Sync repeat & shuffle icons across controls
   const repeatIconClass = state.repeatMode === 'one' ? 'fa-solid fa-1' : 'fa-solid fa-repeat';
   document.querySelectorAll('[data-action="toggle-repeat"]').forEach((btn) => {
@@ -309,12 +301,83 @@ export function refreshPlaybackUI() {
       }
     }
   });
+}
 
-  // Re-render components only if their rendered track ID differs from current state
-  renderPlayerBar(false);
-  renderMiniPlayer(false);
-  if (state.fullscreenPlayer) {
-    renderFullscreenPlayer(false);
-    updateWavyProgress();
+export function refreshPlaybackUI(forceStateSync = false) {
+  const isSeeking = !!state.isSeeking;
+  const curProg = Math.floor(state.progress || 0);
+
+  if (!isSeeking && curProg !== lastProgressVal) {
+    lastProgressVal = curProg;
+    const maxVal = Math.max(
+      1,
+      Math.floor(state.duration || state.currentSong?.durationSec || 1)
+    );
+    const pct = (curProg / maxVal) * 100;
+
+    const seek = document.getElementById('seekbar');
+    if (seek) {
+      seek.max = String(maxVal);
+      seek.value = String(curProg);
+      seek.style.background = `linear-gradient(90deg, var(--green) 0%, var(--green-hover) ${pct}%, rgba(255,255,255,0.15) ${pct}%)`;
+    }
+    const fsSeek = document.getElementById('fs-seekbar');
+    if (fsSeek) {
+      fsSeek.max = String(maxVal);
+      fsSeek.value = String(curProg);
+      fsSeek.style.background = `linear-gradient(90deg, var(--green) 0%, var(--green-hover) ${pct}%, rgba(255,255,255,0.15) ${pct}%)`;
+    }
+
+    const currentLabel = document.getElementById('time-current');
+    if (currentLabel) currentLabel.textContent = formatTime(state.progress);
+    const fsCurrentLabel = document.getElementById('fs-time-current');
+    if (fsCurrentLabel) fsCurrentLabel.textContent = formatTime(state.progress);
+
+    const miniFill = document.querySelector('.mini-progress-fill');
+    if (miniFill) {
+      miniFill.style.width = `${pct}%`;
+    }
+  }
+
+  // Only update play/pause icons if playing/loading state actually changed
+  if (lastRenderedPlaying !== state.isPlaying || lastRenderedLoading !== state.isLoading || forceStateSync) {
+    lastRenderedPlaying = state.isPlaying;
+    lastRenderedLoading = state.isLoading;
+
+    const playToggles = document.querySelectorAll('[data-action="toggle-play"]');
+    playToggles.forEach((playToggle) => {
+      const icon = playToggle.querySelector('i');
+      if (icon) {
+        if (state.isLoading) {
+          icon.className = 'fa-solid fa-spinner fa-spin';
+        } else if (state.isPlaying) {
+          icon.className = 'fa-solid fa-pause';
+        } else {
+          icon.className = 'fa-solid fa-play';
+        }
+      }
+    });
+
+    updateActiveTrackHighlighting();
+  }
+
+  // Sync volume only if changed
+  const volPct = Math.round(state.volume * 100);
+  if (lastRenderedVol !== volPct) {
+    lastRenderedVol = volPct;
+    const volumeSlider = document.getElementById('volume-slider');
+    if (volumeSlider && document.activeElement !== volumeSlider) {
+      volumeSlider.value = String(volPct);
+      volumeSlider.style.background = `linear-gradient(90deg, var(--green) 0%, var(--green-hover) ${volPct}%, rgba(255,255,255,0.15) ${volPct}%)`;
+    }
+    const fsVol = document.getElementById('fs-volume-slider');
+    if (fsVol && document.activeElement !== fsVol) {
+      fsVol.value = String(volPct);
+      fsVol.style.background = `linear-gradient(90deg, var(--green) 0%, var(--green-hover) ${volPct}%, rgba(255,255,255,0.15) ${volPct}%)`;
+    }
+  }
+
+  if (forceStateSync) {
+    syncControlStates();
   }
 }

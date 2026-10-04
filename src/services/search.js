@@ -21,7 +21,7 @@ export async function runSearch(query) {
 
   try {
     const [songs, artists, playlists] = await Promise.all([
-      searchSongs(q, 0, 15),
+      searchSongs(q, 0, 20, state.activeMusicSource || 'all'),
       searchArtists(q, 0, 10),
       searchPlaylists(q, 10),
     ]);

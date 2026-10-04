@@ -8,6 +8,8 @@ let containerElement = null;
 let resizeObserver = null;
 let currentAmp = 0;
 let phase = 0;
+let cachedW = 0;
+let cachedH = 0;
 
 export function initWavyProgress(container) {
   if (!container) return;
@@ -32,13 +34,13 @@ function resizeCanvas() {
   if (!waveCanvas || !containerElement) return;
   const rect = containerElement.getBoundingClientRect();
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
-  const width = Math.max(rect.width, 100);
-  const height = Math.max(rect.height, 28);
+  cachedW = Math.max(rect.width, 100);
+  cachedH = Math.max(rect.height, 28);
 
-  waveCanvas.width = Math.floor(width * dpr);
-  waveCanvas.height = Math.floor(height * dpr);
-  waveCanvas.style.width = `${width}px`;
-  waveCanvas.style.height = `${height}px`;
+  waveCanvas.width = Math.floor(cachedW * dpr);
+  waveCanvas.height = Math.floor(cachedH * dpr);
+  waveCanvas.style.width = `${cachedW}px`;
+  waveCanvas.style.height = `${cachedH}px`;
 
   if (waveCtx) {
     waveCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -57,6 +59,8 @@ export function teardownWavyProgress() {
   waveCanvas = null;
   waveCtx = null;
   containerElement = null;
+  cachedW = 0;
+  cachedH = 0;
 }
 
 export function updateWavyProgress() {
@@ -95,9 +99,8 @@ function startWaveLoop() {
 
 function drawFrame() {
   if (!waveCanvas || !waveCtx || !containerElement) return;
-  const rect = containerElement.getBoundingClientRect();
-  const W = rect.width;
-  const H = rect.height;
+  const W = cachedW || containerElement.clientWidth || 100;
+  const H = cachedH || containerElement.clientHeight || 28;
   if (W <= 0 || H <= 0) return;
 
   const cy = Math.round(H / 2);

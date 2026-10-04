@@ -14,7 +14,30 @@ async function startServer() {
   const apiCache = new Map<string, { timestamp: number; data: any }>();
   const CACHE_TTL = 15 * 60 * 1000; // 15 minutes
 
-  // Search API Proxy & Provider
+  // Fallback: iTunes Apple Music API
+  async function fetchFromITunes(term: string, country: string = 'IN') {
+    try {
+      const url = `https://itunes.apple.com/search?term=${encodeURIComponent(term)}&entity=song&limit=25&country=${country}`;
+      const res = await fetch(url, { headers: { 'User-Agent': 'MRTune/2.0' } });
+      if (!res.ok) return [];
+      const json: any = await res.json();
+      if (!json.results) return [];
+      return json.results.map((r: any) => ({
+        id: String(r.trackId),
+        title: r.trackName,
+        uploaderName: r.artistName,
+        duration: Math.round((r.trackTimeMillis || 180000) / 1000),
+        thumbnail: r.artworkUrl100 ? r.artworkUrl100.replace('100x100bb', '600x600bb') : '',
+        previewUrl: r.previewUrl,
+        source: 'itunes',
+        type: 'track',
+      }));
+    } catch {
+      return [];
+    }
+  }
+
+  // Search API Proxy & Provider with Multi-Source Fallback
   app.get('/api/search', async (req: Request, res: Response) => {
     const cacheKey = req.originalUrl || req.url;
     const cached = apiCache.get(cacheKey);
@@ -22,16 +45,19 @@ async function startServer() {
       return res.json(cached.data);
     }
 
+    const query = typeof req.query.q === 'string' ? req.query.q : '';
+    const source = typeof req.query.source === 'string' ? req.query.source : 'all';
+
     try {
       const remoteUrl = new URL('https://pawtify-meow.vercel.app/api/search');
       for (const [key, value] of Object.entries(req.query)) {
-        if (typeof value === 'string') {
+        if (typeof value === 'string' && key !== 'source') {
           remoteUrl.searchParams.set(key, value);
         }
       }
 
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 9000);
+      const timeoutId = setTimeout(() => controller.abort(), 6500);
 
       const upstreamRes = await fetch(remoteUrl.toString(), {
         headers: {
@@ -46,18 +72,31 @@ async function startServer() {
 
       if (upstreamRes.ok) {
         const data = await upstreamRes.json();
-        apiCache.set(cacheKey, { timestamp: Date.now(), data });
-        return res.json(data);
-      } else {
-        const status = upstreamRes.status;
-        const errText = await upstreamRes.text();
-        console.warn(`Upstream /api/search responded with ${status}: ${errText.slice(0, 100)}`);
-        return res.status(status).json({ items: [], error: 'Upstream error' });
+        if (data && Array.isArray(data.items) && data.items.length > 0) {
+          apiCache.set(cacheKey, { timestamp: Date.now(), data });
+          return res.json(data);
+        }
       }
-    } catch (err: any) {
-      console.error('Error fetching upstream /api/search:', err?.message || err);
-      // Return graceful empty items to prevent client crash
+
+      // If upstream is empty or failed, try secondary source (iTunes)
+      const countryCode = source === 'international' ? 'US' : 'IN';
+      const itunesItems = await fetchFromITunes(query || 'Top Hits', countryCode);
+      if (itunesItems.length > 0) {
+        const payload = { items: itunesItems, source: 'itunes' };
+        apiCache.set(cacheKey, { timestamp: Date.now(), data: payload });
+        return res.json(payload);
+      }
+
       return res.json({ items: [] });
+    } catch (err: any) {
+      console.warn('Primary /api/search failed, trying secondary source:', err?.message || err);
+      try {
+        const countryCode = source === 'international' ? 'US' : 'IN';
+        const itunesItems = await fetchFromITunes(query || 'Top Hits', countryCode);
+        return res.json({ items: itunesItems, source: 'itunes' });
+      } catch {
+        return res.json({ items: [] });
+      }
     }
   });
 
