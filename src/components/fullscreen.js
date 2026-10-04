@@ -3,6 +3,7 @@ import { fullscreenPlayer } from '../config/dom.js';
 import { escapeHTML, formatTime, saveJSON } from '../utils/utils.js';
 import { renderCurrentRoute } from './master.js';
 import { play } from './player.js';
+import { fetchApi } from '../services/musicApi.js';
 import {
   initWavyProgress,
   teardownWavyProgress,
@@ -221,9 +222,8 @@ export async function playYTPlaylist(playlistId) {
   state.isLoading = true;
   renderCurrentRoute();
   try {
-    const res = await fetch(`/api/search?type=playlist_videos&q=${playlistId}`);
-    const data = await res.json();
-    if (data.items && data.items.length > 0) {
+    const data = await fetchApi({ type: 'playlist_videos', q: playlistId });
+    if (data?.items && data.items.length > 0) {
       const firstSong = data.items[0];
       state.queue = data.items;
       saveJSON(STORAGE.QUEUE, state.queue);

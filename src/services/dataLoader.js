@@ -9,6 +9,7 @@ import {
 import { saveJSON } from '../utils/utils.js';
 import { getSongRecommendations } from './apiMapping.js';
 import { INDIA_TOP_TRACKS, INTERNATIONAL_TOP_TRACKS } from '../config/musicSources.js';
+import { fetchApi } from './musicApi.js';
 
 export function getDiscoveryCategories() {
   const categories = [...DISCOVERY_CATEGORIES];
@@ -83,37 +84,29 @@ export async function loadTrendingSongs(forceRefresh = false) {
 
     const selectedCategories = getDiscoveryCategories();
 
-    const results = await Promise.allSettled(
-      selectedCategories.map((cat) =>
-        fetch(`/api/search?q=${encodeURIComponent(cat.query)}`)
-      )
+    const feedResults = await Promise.allSettled(
+      selectedCategories.map((cat) => fetchApi({ q: cat.query }))
     );
 
-    const feed = await Promise.all(
-      results.map(async (res, idx) => {
-        try {
-          if (res.status === 'fulfilled' && res.value.ok) {
-            const contentType = res.value.headers?.get('content-type') || '';
-            if (contentType.includes('application/json')) {
-              const data = await res.value.json();
-              const songs = parseSafe(data);
-              return {
-                title: selectedCategories[idx].title,
-                id: `feed-${idx}`,
-                songs: dedupeSongs(songs),
-              };
-            }
-          }
-        } catch (e) {
-          console.warn('Failed to parse feed category JSON', e);
+    const feed = feedResults.map((res, idx) => {
+      try {
+        if (res.status === 'fulfilled' && res.value) {
+          const songs = parseSafe(res.value);
+          return {
+            title: selectedCategories[idx].title,
+            id: `feed-${idx}`,
+            songs: dedupeSongs(songs),
+          };
         }
-        return {
-          title: selectedCategories[idx].title,
-          id: `feed-${idx}`,
-          songs: [],
-        };
-      })
-    );
+      } catch (e) {
+        console.warn('Failed to parse feed category JSON', e);
+      }
+      return {
+        title: selectedCategories[idx].title,
+        id: `feed-${idx}`,
+        songs: [],
+      };
+    });
 
     state.feedCategories = feed.filter((cat) => cat.songs.length > 0);
 
@@ -176,17 +169,12 @@ export async function fetchSongById(songId) {
   if (cached) return cached;
 
   try {
-    const res = await fetch(
-      `/api/search?type=song&q=${encodeURIComponent(songId)}`
-    );
-    if (res.ok) {
-      const data = await res.json();
-      if (data.item) {
-        const song = mapServerSong(data.item);
-        if (song) {
-          rememberSongs([song]);
-          return song;
-        }
+    const data = await fetchApi({ type: 'song', q: songId });
+    if (data?.item) {
+      const song = mapServerSong(data.item);
+      if (song) {
+        rememberSongs([song]);
+        return song;
       }
     }
   } catch (e) {

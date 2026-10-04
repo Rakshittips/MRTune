@@ -25,12 +25,23 @@ import {
   updateActiveTrackHighlighting,
   syncControlStates,
 } from './playerBar.js';
-import { getNextSong } from '../services/apiMapping.js';
+import { getNextSong, isValidYouTubeId, resolveToPlayableSong } from '../services/apiMapping.js';
 import { renderFullscreenPlayer } from './fullscreen.js';
 
 export async function play(song, queue = null, autoplay = true) {
   if (!song) return;
   let playableSong = song;
+
+  // If track has a non-YouTube ID (e.g. numeric ID from legacy search or iTunes), auto-resolve to a real YouTube video
+  if (!isValidYouTubeId(playableSong.id)) {
+    state.isLoading = true;
+    refreshPlaybackUI();
+    const resolved = await resolveToPlayableSong(playableSong);
+    if (resolved && isValidYouTubeId(resolved.id)) {
+      playableSong = resolved;
+    }
+  }
+
   rememberSongs([playableSong]);
   state.currentSong = playableSong;
   if (queue?.length) {

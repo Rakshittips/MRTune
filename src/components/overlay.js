@@ -346,7 +346,7 @@ export function renderOverlay() {
              </div>
              <div class="meta-list" style="margin-top:12px;">
                <p class="meta-item"><i class="fa-solid fa-code" style="margin-right:8px; color:#a855f7;"></i><b>Developer:</b> Rakshittips</p>
-               <p class="meta-item"><i class="fa-brands fa-github" style="margin-right:8px; color:var(--green);"></i><b>Open Source:</b> <a href="https://github.com/pawjects/Pawtify" target="_blank" rel="noopener" style="color:var(--green); text-decoration:underline;">github.com/pawjects/Pawtify</a></p>
+               <p class="meta-item"><i class="fa-brands fa-github" style="margin-right:8px; color:var(--green);"></i><b>Open Source:</b> <a href="https://github.com/Rakshittips/MRTune" target="_blank" rel="noopener" style="color:var(--green); text-decoration:underline;">github.com/Rakshittips/MRTune</a></p>
                <p class="meta-item"><i class="fa-solid fa-bolt" style="margin-right:8px; color:#ff9f0a;"></i><b>Audio Stream:</b> YouTube High-Fidelity Audio Proxy</p>
                <p class="meta-item"><i class="fa-solid fa-shield-halved" style="margin-right:8px; color:#0a84ff;"></i><b>Privacy:</b> 100% Client-Side &amp; Local Storage Only</p>
                <p class="meta-item"><i class="fa-solid fa-heart" style="margin-right:8px; color:#ff2d55;"></i><b>Made with love</b> by Rakshittips for distraction-free music streaming.</p>

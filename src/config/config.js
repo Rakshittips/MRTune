@@ -23,9 +23,13 @@ import {
   loadTrendingSongs,
   loadRecommendations,
 } from '../services/dataLoader.js';
+import {
+  searchAlternativeStream,
+  isValidYouTubeId,
+} from '../services/musicApi.js';
 
 export const LOGO_URL =
-  '/assets/pawtify.png';
+  './assets/pawtify.png';
 
 export const STORAGE = {
   THEME: 'pawtify-theme',
@@ -398,28 +402,20 @@ export async function handlePlaybackError(errorCode) {
   if (current && !current._triedFallback) {
     current._triedFallback = true;
     globals.isFallingBack = true;
-    showToast(`Finding alternative stream for "${current.title}"...`);
+    showToast(`Finding playable alternative for "${current.title}"...`);
     try {
-      const cleanTitle = (current.title || '')
-        .replace(/\s*\(.*?\)\s*/g, '')
-        .replace(/\s*\[.*?\]\s*/g, '')
-        .trim();
-      const cleanArtist = (current.artist || '').trim();
-      const query = `${cleanTitle} ${cleanArtist} official`;
-      const res = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
-      const data = await res.json();
-      const alternatives = (data?.items || []).filter(
-        (item) =>
-          item.id && item.id !== current.id && item.resultType !== 'artist'
+      const altSong = await searchAlternativeStream(
+        current.title,
+        current.artist,
+        current.id
       );
 
-      if (alternatives.length > 0) {
-        const altSong = alternatives[0];
+      if (altSong && isValidYouTubeId(altSong.id)) {
         console.log(
           `Switching to alternative playable stream: ${altSong.id} (${altSong.title})`
         );
         current.id = altSong.id;
-        if (altSong.thumbnail) current.coverUrl = altSong.thumbnail;
+        if (altSong.coverUrl) current.coverUrl = altSong.coverUrl;
         rememberSongs([current]);
         persistPlayer();
 
@@ -441,15 +437,23 @@ export async function handlePlaybackError(errorCode) {
     globals.isFallingBack = false;
   }
 
+  globals.consecutiveErrors = (globals.consecutiveErrors || 0) + 1;
   state.isLoading = false;
   state.isPlaying = false;
   refreshPlaybackUI();
-  showToast('Track unavailable on embed. Skipping to next song...');
+
+  if (globals.consecutiveErrors >= 3) {
+    showToast('Playback paused. Please choose another song.');
+    globals.consecutiveErrors = 0;
+    return;
+  }
+
+  showToast('Track restricted on embed. Skipping to next song...');
   setTimeout(() => {
     if (state.queue.length > 1) {
       nextTrack();
     }
-  }, 1500);
+  }, 1200);
 }
 
 // Audio Engine State Removed

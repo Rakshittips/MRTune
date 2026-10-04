@@ -228,7 +228,7 @@ export function renderYouPage() {
           </div>
 
           <div class="you-links-grid">
-            <a href="https://github.com/pawjects/Pawtify" target="_blank" rel="noopener noreferrer" class="you-link-card">
+            <a href="https://github.com/Rakshittips/MRTune" target="_blank" rel="noopener noreferrer" class="you-link-card">
               <i class="fa-brands fa-github you-link-icon"></i>
               <div class="you-link-text">
                 <strong>GitHub</strong>
@@ -237,7 +237,7 @@ export function renderYouPage() {
               <i class="fa-solid fa-arrow-up-right-from-square you-link-ext"></i>
             </a>
 
-            <a href="https://github.com/pawjects/Pawtify/issues" target="_blank" rel="noopener noreferrer" class="you-link-card">
+            <a href="https://github.com/Rakshittips/MRTune/issues" target="_blank" rel="noopener noreferrer" class="you-link-card">
               <i class="fa-solid fa-bug you-link-icon"></i>
               <div class="you-link-text">
                 <strong>Issues</strong>

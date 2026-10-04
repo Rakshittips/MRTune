@@ -150,6 +150,7 @@ export function onPlayerStateChange(event) {
     // PLAYING
     clearYtLoadTimeout();
     globals.isFallingBack = false;
+    globals.consecutiveErrors = 0;
     state.isPlaying = true;
     state.isLoading = false;
     if (state.currentSong) state.currentSong._triedFallback = false;

@@ -28,6 +28,7 @@ import {
 } from './details.js';
 import { state, STORAGE, showToast, globals, DAILY_CAT_MIXES, CURATED_PODCASTS } from '../config/config.js';
 import { renderOverlay } from '../components/overlay.js';
+import { fetchApi } from '../services/musicApi.js';
 import {
   renderSidebarPlaylists,
   refreshPlaybackUI,
@@ -744,10 +745,9 @@ export function bindGlobalEvents() {
           if (!state.ytPlaylists[pid]) {
              state.ytPlaylists[pid] = { id: pid, name: name, coverUrl: img, songs: [], isLoading: true, isSystem: true };
              
-             fetch(`/api/search?type=playlist_videos&q=${pid}`)
-               .then(res => res.json())
+             fetchApi({ type: 'playlist_videos', q: pid })
                .then(data => {
-                  state.ytPlaylists[pid].songs = data.items || [];
+                  state.ytPlaylists[pid].songs = data?.items || [];
                   state.ytPlaylists[pid].isLoading = false;
                   window.dispatchEvent(new CustomEvent('routechange'));
                })
