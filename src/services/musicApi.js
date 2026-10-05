@@ -243,7 +243,7 @@ export async function searchArtists(query, page = 0, limit = 10) {
             : x.uploaderName?.name) ||
         x.title ||
         'Unknown Artist',
-      imageUrl: x.thumbnail || './assets/pawtify.png',
+      imageUrl: x.thumbnail || './assets/mrtune.png',
       type: 'Artist',
       bio: '',
     }));

@@ -31,11 +31,11 @@ export function renderYouPage() {
       <div class="you-profile-card">
         <div class="you-profile-main">
           <div class="you-avatar-wrap">
-            <img src="${LOGO_URL}" alt="Pawtify" class="you-avatar-img" />
+            <img src="${LOGO_URL}" alt="MRTune" class="you-avatar-img" />
           </div>
           <div class="you-profile-details">
             <div class="you-title-row" style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
-              <h1 class="you-name">${escapeHTML(state.userName || 'Pawtify')}</h1>
+              <h1 class="you-name">${escapeHTML(state.userName || 'MRTune')}</h1>
               <button class="icon-btn small you-edit-name-btn" data-action="edit-user-name" type="button" aria-label="Edit display name" title="Edit name" style="width:28px; height:28px; border-radius:50%; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); color:var(--muted);">
                 <i class="fa-solid fa-pen" style="font-size:0.75rem;"></i>
               </button>
@@ -251,6 +251,15 @@ export function renderYouPage() {
               <div class="you-link-text">
                 <strong>About MRTune</strong>
                 <span>App information</span>
+              </div>
+              <i class="fa-solid fa-chevron-right you-link-ext"></i>
+            </button>
+
+            <button class="you-link-card you-link-btn" data-action="open-support-modal" type="button" style="border-color:rgba(255,45,85,0.25); background:rgba(255,45,85,0.06);">
+              <i class="fa-solid fa-heart you-link-icon" style="color:#ff2d55;"></i>
+              <div class="you-link-text">
+                <strong style="color:#fff;">Support MRTune</strong>
+                <span style="color:#ff7597;">Keep the app free forever</span>
               </div>
               <i class="fa-solid fa-chevron-right you-link-ext"></i>
             </button>

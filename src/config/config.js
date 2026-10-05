@@ -29,28 +29,28 @@ import {
 } from '../services/musicApi.js';
 
 export const LOGO_URL =
-  './assets/pawtify.png';
+  './assets/mrtune.png';
 
 export const STORAGE = {
-  THEME: 'pawtify-theme',
-  REPEAT: 'pawtify-repeat',
-  SHUFFLE: 'pawtify-shuffle',
-  FAVORITES: 'pawtify-favorites',
-  PLAYLISTS: 'pawtify-playlists',
-  QUEUE: 'pawtify-queue',
-  CURRENT_SONG: 'pawtify-current-song',
-  CURRENT_TIME: 'pawtify-current-time',
-  VOLUME: 'pawtify-volume',
-  RECENT_SEARCHES: 'pawtify-recent-searches',
-  SEARCH_QUERY: 'pawtify-search-query',
-  RECENT_PLAYED: 'pawtify-recently-played',
-  USER_NAME: 'pawtify-user-name',
-  DOWNLOADS: 'pawtify-downloads',
-  CAT_PROFILE: 'pawtify-cat-profile',
-  CAT_MEALS: 'pawtify-cat-meals',
-  CAT_VETS: 'pawtify-cat-vets',
-  CAT_WEIGHTS: 'pawtify-cat-weights',
-  CAT_HYDRATION: 'pawtify-cat-hydration',
+  THEME: 'mrtune-theme',
+  REPEAT: 'mrtune-repeat',
+  SHUFFLE: 'mrtune-shuffle',
+  FAVORITES: 'mrtune-favorites',
+  PLAYLISTS: 'mrtune-playlists',
+  QUEUE: 'mrtune-queue',
+  CURRENT_SONG: 'mrtune-current-song',
+  CURRENT_TIME: 'mrtune-current-time',
+  VOLUME: 'mrtune-volume',
+  RECENT_SEARCHES: 'mrtune-recent-searches',
+  SEARCH_QUERY: 'mrtune-search-query',
+  RECENT_PLAYED: 'mrtune-recently-played',
+  USER_NAME: 'mrtune-user-name',
+  DOWNLOADS: 'mrtune-downloads',
+  CAT_PROFILE: 'mrtune-cat-profile',
+  CAT_MEALS: 'mrtune-cat-meals',
+  CAT_VETS: 'mrtune-cat-vets',
+  CAT_WEIGHTS: 'mrtune-cat-weights',
+  CAT_HYDRATION: 'mrtune-cat-hydration',
 };
 
 export const DEFAULT_CAT_PROFILE = {
@@ -501,7 +501,7 @@ Object.assign(state, {
   libraryTab: 'recent',
   activeMusicSource: 'all',
   streamEngine: 'auto',
-  liquidGlass: localStorage.getItem('pawtify_liquid_glass') !== 'false',
+  liquidGlass: (localStorage.getItem('mrtune_liquid_glass') || localStorage.getItem('pawtify_liquid_glass')) !== 'false',
   searchLoading: false,
   searchResults: { songs: [], artists: [] },
   recentSearches: normalizeRecentSearches(
@@ -608,7 +608,7 @@ export async function initApp() {
 
     const savedName = loadJSON(STORAGE.USER_NAME, '');
     state.userName = savedName || '';
-    const welcomeSeen = loadJSON('pawtify-welcome-seen', false);
+    const welcomeSeen = loadJSON('mrtune-welcome-seen', false) || loadJSON('pawtify-welcome-seen', false);
     if (!welcomeSeen && !state.userName && initialRoute.name !== 'song') {
       state.modal = { type: 'welcome' };
     }

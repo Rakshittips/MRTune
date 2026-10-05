@@ -349,9 +349,22 @@ export function renderOverlay() {
                <p class="meta-item"><i class="fa-brands fa-github" style="margin-right:8px; color:var(--green);"></i><b>Open Source:</b> <a href="https://github.com/Rakshittips/MRTune" target="_blank" rel="noopener" style="color:var(--green); text-decoration:underline;">github.com/Rakshittips/MRTune</a></p>
                <p class="meta-item"><i class="fa-solid fa-bolt" style="margin-right:8px; color:#ff9f0a;"></i><b>Audio Stream:</b> YouTube High-Fidelity Audio Proxy</p>
                <p class="meta-item"><i class="fa-solid fa-shield-halved" style="margin-right:8px; color:#0a84ff;"></i><b>Privacy:</b> 100% Client-Side &amp; Local Storage Only</p>
+               <p class="meta-item" style="cursor:pointer;" data-action="open-support-modal"><i class="fa-solid fa-hand-holding-heart" style="margin-right:8px; color:#ff2d55;"></i><b>Support:</b> <span style="color:#ff2d55; text-decoration:underline; font-weight:600;">Support to keep the app free forever</span></p>
                <p class="meta-item"><i class="fa-solid fa-heart" style="margin-right:8px; color:#ff2d55;"></i><b>Made with love</b> by Rakshittips for distraction-free music streaming.</p>
              </div>
-             <div style="margin-top:18px;">
+             <div style="margin-top:16px; margin-bottom:12px;">
+               <button class="btn" data-action="open-support-modal" type="button" style="width:100%; padding:13px 16px; background:linear-gradient(135deg, rgba(255,45,85,0.18), rgba(168,85,247,0.18)); border:1px solid rgba(255,45,85,0.35); border-radius:14px; color:#fff; display:flex; align-items:center; gap:12px; cursor:pointer; text-align:left; box-shadow:0 6px 20px rgba(255,45,85,0.15); transition:all 0.2s ease;">
+                 <div style="width:36px; height:36px; border-radius:10px; background:rgba(255,45,85,0.22); display:grid; place-items:center; flex-shrink:0; color:#ff2d55; font-size:1.15rem;">
+                   <i class="fa-solid fa-heart"></i>
+                 </div>
+                 <div style="flex:1;">
+                   <strong style="display:block; font-size:0.9rem; color:#fff; font-weight:700;">Support MRTune</strong>
+                   <span style="display:block; font-size:0.75rem; color:#ff7597; font-weight:500;">Support to keep the app free forever</span>
+                 </div>
+                 <i class="fa-solid fa-chevron-right" style="color:rgba(255,255,255,0.4); font-size:0.75rem;"></i>
+               </button>
+             </div>
+             <div style="margin-top:8px;">
                <button class="btn btn-soft" data-action="close-modal" type="button" style="width:100%;">Done</button>
              </div>
            </div>

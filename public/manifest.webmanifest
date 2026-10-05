@@ -11,13 +11,13 @@
   "categories": ["music", "entertainment"],
   "icons": [
     {
-      "src": "/assets/pawtify.png",
+      "src": "./assets/mrtune.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/assets/pawtify.png",
+      "src": "./assets/mrtune.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"

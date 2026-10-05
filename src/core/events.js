@@ -295,11 +295,12 @@ export function bindGlobalEvents() {
         if (name) {
           state.userName = name;
           saveJSON(STORAGE.USER_NAME, name);
-          localStorage.setItem('pawtify_user_name', name);
+          localStorage.setItem('mrtune_user_name', name);
           showToast(`Profile updated: ${name}`);
         } else {
           state.userName = '';
           saveJSON(STORAGE.USER_NAME, '');
+          localStorage.removeItem('mrtune_user_name');
           localStorage.removeItem('pawtify_user_name');
           showToast('Profile name cleared.');
         }
@@ -351,7 +352,7 @@ export function bindGlobalEvents() {
       }
       if (action === 'toggle-liquid-glass') {
         state.liquidGlass = !state.liquidGlass;
-        localStorage.setItem('pawtify_liquid_glass', state.liquidGlass ? 'true' : 'false');
+        localStorage.setItem('mrtune_liquid_glass', state.liquidGlass ? 'true' : 'false');
         document.body.classList.toggle('liquid-glass-disabled', state.liquidGlass === false);
         showToast(
           state.liquidGlass
@@ -390,7 +391,7 @@ export function bindGlobalEvents() {
         event.preventDefault();
         const color = actionNode.dataset.color || '#1db954';
         state.accentColor = color;
-        localStorage.setItem('pawtify_accent', color);
+        localStorage.setItem('mrtune_accent', color);
         document.documentElement.style.setProperty('--green', color);
         document.documentElement.style.setProperty('--primary', color);
         showToast(`Theme accent changed!`);
@@ -427,7 +428,7 @@ export function bindGlobalEvents() {
         const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
-        a.download = `pawtify-library-${new Date().toISOString().slice(0, 10)}.json`;
+        a.download = `mrtune-library-${new Date().toISOString().slice(0, 10)}.json`;
         a.click();
         showToast('Library exported successfully!');
         return;
@@ -854,7 +855,7 @@ export function bindGlobalEvents() {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `pawtify-library-${new Date().toISOString().slice(0, 10)}.json`;
+        a.download = `mrtune-library-${new Date().toISOString().slice(0, 10)}.json`;
         a.click();
         URL.revokeObjectURL(url);
         showToast('Library exported successfully');
@@ -1152,8 +1153,8 @@ export function bindGlobalEvents() {
       const name = (input?.value || '').trim();
       state.userName = name;
       saveJSON(STORAGE.USER_NAME, name);
-      localStorage.setItem('pawtify_user_name', name);
-      saveJSON('pawtify-welcome-seen', true);
+      localStorage.setItem('mrtune_user_name', name);
+      saveJSON('mrtune-welcome-seen', true);
       state.modal = null;
       renderOverlay();
       renderCurrentRoute();

@@ -21,7 +21,11 @@ export function escapeHTML(text) {
 
 export function loadJSON(key, fallback) {
   try {
-    const raw = localStorage.getItem(key);
+    let raw = localStorage.getItem(key);
+    if (raw === null && typeof key === 'string' && key.startsWith('mrtune-')) {
+      const legacyKey = key.replace('mrtune-', 'pawtify-');
+      raw = localStorage.getItem(legacyKey);
+    }
     if (raw === null) return fallback;
     return JSON.parse(raw);
   } catch (error) {

@@ -93,6 +93,18 @@ export function renderSettingsPage() {
           </div>
           <i class="fa-solid fa-chevron-right settings-item-chevron"></i>
         </button>
+
+        <!-- 7. Support & Donate -->
+        <button class="settings-item-row" data-action="open-support-modal" type="button" style="border: 1px solid rgba(255,45,85,0.25); background: rgba(255,45,85,0.06);">
+          <div class="settings-item-icon" style="background: #ff2d55;">
+            <i class="fa-solid fa-heart"></i>
+          </div>
+          <div class="settings-item-content">
+            <span class="settings-item-title" style="color: #fff;">Support MRTune</span>
+            <span class="settings-item-subtitle" style="color: #ff7597;">Support to keep the app free forever</span>
+          </div>
+          <i class="fa-solid fa-chevron-right settings-item-chevron"></i>
+        </button>
       </div>
     </section>
   `;
