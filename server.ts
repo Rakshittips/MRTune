@@ -1,8 +1,8 @@
-import express, { Request, Response } from 'express';
+import express, { type Request, type Response } from 'express';
 import { createServer as createViteServer } from 'vite';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { searchHandler } from './server/api/search.js';
+import { searchHandler } from './server/api/search.ts';
 import dotenv from 'dotenv';
 
 dotenv.config();

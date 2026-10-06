@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import YTMusic from 'ytmusic-api';
 
 const ytmusic = new YTMusic();
