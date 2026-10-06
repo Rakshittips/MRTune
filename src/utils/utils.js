@@ -2,6 +2,10 @@ import { showToast, state } from '../config/config.js';
 import { renderLyricsPanel } from '../components/lyrics.js';
 import { idbSet } from './idb.js';
 
+export function generateId(prefix = 'playlist') {
+  return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
+}
+
 export function formatTime(value) {
   const seconds = Math.max(0, Math.floor(Number(value) || 0));
   const minutes = Math.floor(seconds / 60);

@@ -16,18 +16,21 @@ export function renderFullscreenPlayer(force = false) {
     fullscreenPlayer.classList.remove('active');
     fullscreenPlayer.innerHTML = '';
     delete fullscreenPlayer.dataset.renderedTrackId;
+    delete fullscreenPlayer.dataset.renderedKey;
     return;
   }
-  fullscreenPlayer.classList.add('active');
-  const song = state.currentSong;
 
-  // Track rendering ID including queue mode to allow seamless mode switching
-  const renderKey = `${song.id}-${state.fsQueueMode ? 'queue' : 'standard'}-${state.fsMenuOpen ? 'menu' : ''}`;
-  if (!force && fullscreenPlayer.dataset.renderedKey === renderKey) {
-    return;
-  }
-  fullscreenPlayer.dataset.renderedKey = renderKey;
-  fullscreenPlayer.dataset.renderedTrackId = String(song.id);
+  try {
+    const song = state.currentSong;
+
+    // Track rendering ID including queue mode to allow seamless mode switching
+    const renderKey = `${song.id}-${state.fsQueueMode ? 'queue' : 'standard'}-${state.fsMenuOpen ? 'menu' : ''}`;
+    if (!force && fullscreenPlayer.dataset.renderedKey === renderKey) {
+      return;
+    }
+    fullscreenPlayer.classList.add('active');
+    fullscreenPlayer.dataset.renderedKey = renderKey;
+    fullscreenPlayer.dataset.renderedTrackId = String(song.id);
 
   const isFav = state.favorites.some((item) => item.id === song.id);
   const durSec = Math.max(1, Math.floor(state.duration || song.durationSec || 1));
@@ -162,10 +165,19 @@ export function renderFullscreenPlayer(force = false) {
     <div class="fs-ios-backdrop" style="background-image: url('${escapeHTML(song.coverUrl)}');"></div>
     <div class="fs-ios-ambient-overlay"></div>
     <div class="fs-ios-container">
-      <!-- Top Grabber Bar -->
-      <div class="fs-drag-handle-wrap" data-action="close-fullscreen-player">
-        <span class="fs-grabber-bar"></span>
-      </div>
+      <!-- Top Navigation & Close Header Bar -->
+      <header class="fs-top-bar" aria-label="Player navigation">
+        <button class="fs-close-btn" data-action="close-fullscreen-player" type="button" aria-label="Close player" title="Close">
+          <i class="fa-solid fa-chevron-down"></i>
+          <span>Close</span>
+        </button>
+
+        <div class="fs-drag-handle-wrap" data-action="close-fullscreen-player" title="Tap to close">
+          <span class="fs-grabber-bar"></span>
+        </div>
+
+        <div class="fs-top-spacer" aria-hidden="true"></div>
+      </header>
 
       <!-- Main Body (Standard or Queue) -->
       ${mainContentHTML}
@@ -216,6 +228,11 @@ export function renderFullscreenPlayer(force = false) {
       </div>
     </div>
   `;
+  } catch (err) {
+    console.error('Failed to render fullscreen player:', err);
+    fullscreenPlayer.classList.remove('active');
+    fullscreenPlayer.innerHTML = '';
+  }
 }
 
 export async function playYTPlaylist(playlistId) {

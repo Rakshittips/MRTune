@@ -10,6 +10,7 @@ import {
   toggleRepeat,
   toggleShuffle,
   play,
+  playSomething,
   deletePlaylist,
   seekTo,
   setVolume,
@@ -38,7 +39,8 @@ import {
   renderFullscreenPlayer,
   playYTPlaylist,
 } from '../components/fullscreen.js';
-import { downloadCurrentSong, formatTime, openLyrics, saveJSON } from '../utils/utils.js';
+import { downloadCurrentSong, formatTime, openLyrics, saveJSON, generateId } from '../utils/utils.js';
+import { updateSearchPageUI } from '../components/components.js';
 import { renderLyricsPanel } from '../components/lyrics.js';
 import { updateWavyProgress } from '../components/wavyProgress.js';
 import {
@@ -327,13 +329,6 @@ export function bindGlobalEvents() {
         event.preventDefault();
         state.profileMenuOpen = false;
         state.modal = { type: 'signin' };
-        renderOverlay();
-        return;
-      }
-      if (action === 'open-rate-modal') {
-        event.preventDefault();
-        state.profileMenuOpen = false;
-        state.modal = { type: 'rateApp' };
         renderOverlay();
         return;
       }

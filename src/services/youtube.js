@@ -38,7 +38,9 @@ window.onYouTubeIframeAPIReady = function () {
   if (!hostElem) return;
 
   try {
-    globals.ytPlayer = new YT.Player('yt-player-host', {
+    const YTObj = window.YT || window['YT'];
+    if (!YTObj || typeof YTObj.Player !== 'function') return;
+    globals.ytPlayer = new YTObj.Player('yt-player-host', {
       height: '158',
       width: '280',
       host: 'https://www.youtube.com',

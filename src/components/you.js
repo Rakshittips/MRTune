@@ -246,6 +246,15 @@ export function renderYouPage() {
               <i class="fa-solid fa-arrow-up-right-from-square you-link-ext"></i>
             </a>
 
+            <a href="https://www.instagram.com/mr._rakshit_2.0" target="_blank" rel="noopener noreferrer" class="you-link-card">
+              <i class="fa-brands fa-instagram you-link-icon" style="color:#e1306c;"></i>
+              <div class="you-link-text">
+                <strong>Instagram</strong>
+                <span>@mr._rakshit_2.0</span>
+              </div>
+              <i class="fa-solid fa-arrow-up-right-from-square you-link-ext"></i>
+            </a>
+
             <button class="you-link-card you-link-btn" data-action="open-app-info" type="button">
               <i class="fa-solid fa-circle-info you-link-icon"></i>
               <div class="you-link-text">

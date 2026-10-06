@@ -105,6 +105,18 @@ export function renderSettingsPage() {
           </div>
           <i class="fa-solid fa-chevron-right settings-item-chevron"></i>
         </button>
+
+        <!-- 8. Instagram Profile -->
+        <a class="settings-item-row" href="https://www.instagram.com/mr._rakshit_2.0" target="_blank" rel="noopener noreferrer" style="text-decoration:none;">
+          <div class="settings-item-icon" style="background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);">
+            <i class="fa-brands fa-instagram"></i>
+          </div>
+          <div class="settings-item-content">
+            <span class="settings-item-title">Instagram</span>
+            <span class="settings-item-subtitle">@mr._rakshit_2.0</span>
+          </div>
+          <i class="fa-solid fa-arrow-up-right-from-square settings-item-chevron" style="font-size:0.8rem; color:var(--muted);"></i>
+        </a>
       </div>
     </section>
   `;

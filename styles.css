@@ -6401,28 +6401,102 @@ body.on-search-route .mini-player {
   height: 100%;
   display: flex;
   flex-direction: column;
-  padding: 10px 24px calc(env(safe-area-inset-bottom, 20px) + 16px);
+  padding: max(16px, env(safe-area-inset-top, 16px)) 20px calc(env(safe-area-inset-bottom, 20px) + 16px);
   max-width: 500px;
   margin: 0 auto;
   box-sizing: border-box;
   justify-content: space-between;
 }
 
-.fs-drag-handle-wrap {
+/* Top Bar Header with Close Button & Grabber */
+.fs-top-bar {
   width: 100%;
-  height: 24px;
-  display: grid;
-  place-items: center;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 0 8px;
+  flex-shrink: 0;
+  position: relative;
+  min-height: 38px;
+}
+
+.fs-close-btn {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+  padding: 0 14px;
+  height: 32px;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 600;
   cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.18s cubic-bezier(0.2, 0.8, 0.2, 1);
   -webkit-tap-highlight-color: transparent;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
   flex-shrink: 0;
 }
 
+.fs-close-btn:hover {
+  background: rgba(255, 255, 255, 0.22);
+  transform: translateY(-1px);
+}
+
+.fs-close-btn:active {
+  background: rgba(255, 255, 255, 0.28);
+  transform: scale(0.96);
+}
+
+.fs-close-btn i {
+  font-size: 0.75rem;
+  transition: transform 0.15s ease;
+  pointer-events: none;
+}
+
+.fs-close-btn span {
+  pointer-events: none;
+  letter-spacing: -0.01em;
+}
+
+.fs-drag-handle-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 12px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  flex: 1;
+  height: 32px;
+}
+
 .fs-grabber-bar {
-  width: 38px;
+  width: 36px;
   height: 5px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.38);
+  transition: background 0.18s ease, transform 0.18s ease;
+}
+
+.fs-drag-handle-wrap:hover .fs-grabber-bar {
+  background: rgba(255, 255, 255, 0.75);
+  transform: scaleY(1.2);
+}
+
+.fs-top-spacer {
+  width: 76px;
+  min-width: 76px;
+  flex-shrink: 0;
+  height: 32px;
+  pointer-events: none;
 }
 
 /* Standard Artwork View */
