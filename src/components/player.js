@@ -12,7 +12,6 @@ import {
   handlePlaybackError,
   showToast,
   globals,
-  CURATED_IOS_TRACKS,
 } from '../config/config.js';
 import { saveJSON } from '../utils/utils.js';
 import { updateMediaSession, loadYTApi } from '../services/youtube.js';
@@ -114,28 +113,6 @@ export function pause() {
   if (navigator.mediaSession) navigator.mediaSession.playbackState = 'paused';
   persistPlayer();
   refreshPlaybackUI();
-}
-
-export async function playSomething() {
-  if (state.queue && state.queue.length > 0) {
-    const idx =
-      state.currentSongIndex >= 0 && state.currentSongIndex < state.queue.length
-        ? state.currentSongIndex
-        : 0;
-    return play(state.queue[idx], state.queue, true);
-  }
-  if (state.favorites && state.favorites.length > 0) {
-    return play(state.favorites[0], state.favorites, true);
-  }
-  if (state.recentlyPlayed && state.recentlyPlayed.length > 0) {
-    return play(state.recentlyPlayed[0], state.recentlyPlayed, true);
-  }
-  if (state.trendingSongs && state.trendingSongs.length > 0) {
-    return play(state.trendingSongs[0], state.trendingSongs, true);
-  }
-  if (Array.isArray(CURATED_IOS_TRACKS) && CURATED_IOS_TRACKS.length > 0) {
-    return play(CURATED_IOS_TRACKS[0], CURATED_IOS_TRACKS, true);
-  }
 }
 
 export async function togglePlay() {

@@ -1,4 +1,3 @@
-import '../styles.css';
 import { initApp } from './config/config.js';
 import './services/youtube.js';
 import './core/events.js';

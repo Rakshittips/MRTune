@@ -1,6 +1,6 @@
 export function openDB() {
   return new Promise((resolve, reject) => {
-    const req = indexedDB.open('MRTuneDB', 1);
+    const req = indexedDB.open('PawtifyDB', 1);
     req.onupgradeneeded = (e) => {
       const db = e.target.result;
       if (!db.objectStoreNames.contains('store')) {

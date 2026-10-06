@@ -9,7 +9,7 @@ let useSampleMix = false;
 
 // Color palette specifically calibrated for AMOLED dark glass UI
 const CHART_PALETTE = [
-  '#10b981', // Emerald Green (MRTune signature)
+  '#10b981', // Emerald Green (Pawtify signature)
   '#06b6d4', // Electric Cyan
   '#8b5cf6', // Vivid Purple
   '#f59e0b', // Warm Amber
@@ -508,8 +508,8 @@ export function drawD3Chart(containerEl, data, totalCount, mode, isSample) {
     });
 
   // Attach hover handlers for legend items outside SVG
-  window.__mrtuneHighlightSlice = handleHighlight;
-  window.__mrtuneResetSlice = handleReset;
+  window.__pawtifyHighlightSlice = handleHighlight;
+  window.__pawtifyResetSlice = handleReset;
 }
 
 /**
@@ -589,14 +589,14 @@ function renderLegendAndSummary(legendEl, summaryEl, data, totalCount, mode, isS
     const name = itemEl.dataset.name;
 
     itemEl.addEventListener('mouseenter', () => {
-      if (typeof window.__mrtuneHighlightSlice === 'function') {
-        window.__mrtuneHighlightSlice(idx);
+      if (typeof window.__pawtifyHighlightSlice === 'function') {
+        window.__pawtifyHighlightSlice(idx);
       }
     });
 
     itemEl.addEventListener('mouseleave', () => {
-      if (typeof window.__mrtuneResetSlice === 'function') {
-        window.__mrtuneResetSlice();
+      if (typeof window.__pawtifyResetSlice === 'function') {
+        window.__pawtifyResetSlice();
       }
     });
 

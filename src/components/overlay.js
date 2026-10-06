@@ -70,6 +70,34 @@ export function renderOverlay() {
     return;
   }
 
+  if (state.modal.type === 'rateApp') {
+    overlayRoot.innerHTML = `
+      <section class="overlay" data-action="dismiss-overlay">
+        <article class="modal" style="max-width: 380px; text-align:center;">
+          <header class="modal-head" style="justify-content:flex-end;">
+            <button class="icon-btn" data-action="close-modal" type="button" aria-label="Close" style="width:32px; height:32px; border-radius:999px;">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </header>
+          <div class="modal-body" style="padding-top:0;">
+            <div style="font-size:2.4rem; color:#ffb703; margin-bottom:12px;">
+              <i class="fa-solid fa-star"></i>
+              <i class="fa-solid fa-star"></i>
+              <i class="fa-solid fa-star"></i>
+              <i class="fa-solid fa-star"></i>
+              <i class="fa-solid fa-star"></i>
+            </div>
+            <h3 style="font-size:1.25rem; font-weight:800; color:#fff; margin-bottom:6px;">Enjoying MRTune?</h3>
+            <p style="font-size:0.85rem; color:var(--muted); margin-bottom:20px; line-height:1.45;">Tap stars to rate us! Your feedback helps us keep developing free, ad-free music for everyone.</p>
+            <button class="btn btn-primary" data-action="close-modal" type="button" style="width:100%; padding:12px; margin-bottom:8px;">Submit 5 Stars</button>
+            <button class="btn btn-soft" data-action="close-modal" type="button" style="width:100%;">Not Now</button>
+          </div>
+        </article>
+      </section>
+    `;
+    return;
+  }
+
   if (state.modal.type === 'supportApp') {
     overlayRoot.innerHTML = `
       <section class="overlay" data-action="dismiss-overlay">
@@ -318,7 +346,6 @@ export function renderOverlay() {
              </div>
              <div class="meta-list" style="margin-top:12px;">
                <p class="meta-item"><i class="fa-solid fa-code" style="margin-right:8px; color:#a855f7;"></i><b>Developer:</b> Rakshittips</p>
-               <p class="meta-item"><i class="fa-brands fa-instagram" style="margin-right:8px; color:#e1306c;"></i><b>Instagram:</b> <a href="https://www.instagram.com/mr._rakshit_2.0" target="_blank" rel="noopener noreferrer" style="color:#e1306c; text-decoration:underline;">@mr._rakshit_2.0</a></p>
                <p class="meta-item"><i class="fa-brands fa-github" style="margin-right:8px; color:var(--green);"></i><b>Open Source:</b> <a href="https://github.com/Rakshittips/MRTune" target="_blank" rel="noopener" style="color:var(--green); text-decoration:underline;">github.com/Rakshittips/MRTune</a></p>
                <p class="meta-item"><i class="fa-solid fa-bolt" style="margin-right:8px; color:#ff9f0a;"></i><b>Audio Stream:</b> YouTube High-Fidelity Audio Proxy</p>
                <p class="meta-item"><i class="fa-solid fa-shield-halved" style="margin-right:8px; color:#0a84ff;"></i><b>Privacy:</b> 100% Client-Side &amp; Local Storage Only</p>
