@@ -1,16 +1,21 @@
 import { navigate, parseRoute } from '../config/router.js';
-import { state } from '../config/config.js';
+import { state, showToast } from '../config/config.js';
+import { renderLyricsPanel } from '../components/lyrics.js';
+import { dedupeSongs } from '../core/details.js';
+import { saveJSON } from '../utils/utils.js';
 
 export function setupSwipeGestures() {
   let touchStartX = 0;
   let touchStartY = 0;
   let touchMoved = false;
+  let songRowTarget = null;
 
   document.addEventListener('touchstart', (e) => {
     if (e.touches.length > 1) return; // Ignore multi-touch
     touchStartX = e.touches[0].clientX;
     touchStartY = e.touches[0].clientY;
     touchMoved = false;
+    songRowTarget = e.target.closest('.song-row');
   }, { passive: true });
 
   document.addEventListener('touchmove', (e) => {
@@ -26,15 +31,54 @@ export function setupSwipeGestures() {
     const deltaX = touchEndX - touchStartX;
     const deltaY = touchEndY - touchStartY;
 
+    const startX = touchStartX;
     touchStartX = 0;
     touchStartY = 0;
 
-    // Check if it's a primarily horizontal swipe
-    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 75) {
-      // 1. Ignore if target is a range input (e.g., volume/seek sliders)
+    // 1. Optional back gesture to dismiss lyrics page (swipe right from body or left edge)
+    if (state.lyricsPanel && state.lyricsBackGesture !== false) {
+      if (deltaX > 70 && Math.abs(deltaX) > Math.abs(deltaY) * 1.4) {
+        state.lyricsPanel = false;
+        renderLyricsPanel();
+        showToast('Dismissed lyrics');
+        return;
+      }
+    }
+
+    // 2. Song Row Swipe-to-add to Queue
+    // Fixed: Require intentional horizontal flick (> 95px, 2.2x vertical) to prevent accidental drags while scrolling
+    if (songRowTarget && Math.abs(deltaX) > 95 && Math.abs(deltaX) > Math.abs(deltaY) * 2.2) {
+      const songId = songRowTarget.dataset.songId;
+      if (songId && deltaX > 0) {
+        // Swipe right -> Add to Queue
+        const allSongs = [
+          ...(state.favorites || []),
+          ...(state.queue || []),
+          ...(state.trendingSongs || []),
+          ...(state.downloads || []),
+          ...(state.localSongs || []),
+        ];
+        const targetSong = allSongs.find((s) => s.id === songId);
+        if (targetSong) {
+          if (!state.queue) state.queue = [];
+          if (!state.queue.some((s) => s.id === targetSong.id)) {
+            state.queue.push(targetSong);
+            saveJSON('pawtify-queue', state.queue);
+            showToast(`Added "${targetSong.title}" to Queue!`);
+          } else {
+            showToast(`"${targetSong.title}" is already in Queue.`);
+          }
+          return;
+        }
+      }
+    }
+
+    // 3. Check if it's a primarily horizontal swipe between app tabs
+    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 85) {
+      // Ignore if target is a range input (e.g., volume/seek sliders)
       if (e.target.tagName && e.target.tagName.toLowerCase() === 'input' && e.target.type === 'range') return;
 
-      // 2. Ignore if swiping on a horizontally scrollable container
+      // Ignore if swiping on a horizontally scrollable container
       let el = e.target;
       while (el && el !== document.body) {
         if (el.scrollWidth > el.clientWidth) {
@@ -46,10 +90,10 @@ export function setupSwipeGestures() {
         el = el.parentElement;
       }
 
-      // 3. Ignore if any modal/panel is open
+      // Ignore if any modal/panel is open
       if (state.fullscreenPlayer || state.artistProfile || state.queuePanel || state.lyricsPanel || state.modal) return;
 
-      // 4. Ignore swipes on the player UI area
+      // Ignore swipes on the player UI area
       if (e.target.closest('#mini-player') || e.target.closest('#player-bar')) return;
 
       const routes = ['/', '/search', '/library'];

@@ -83,12 +83,8 @@ export function renderHomePage() {
           <i class="fa-solid fa-rotate-right"></i>
           <span>Refresh</span>
         </button>
-        <button class="profile-popover-item" data-action="open-rate-modal" type="button">
-          <i class="fa-solid fa-star"></i>
-          <span>Rate the app</span>
-        </button>
-        <a class="profile-popover-item" href="https://instagram.com" target="_blank" rel="noopener noreferrer">
-          <i class="fa-brands fa-instagram"></i>
+        <a class="profile-popover-item" href="https://www.instagram.com/mr._rakshit_2.0" target="_blank" rel="noopener noreferrer" data-action="open-instagram">
+          <i class="fa-brands fa-instagram" style="color: #e1306c;"></i>
           <span>Instagram</span>
         </a>
         <button class="profile-popover-item" data-action="open-support-modal" type="button">

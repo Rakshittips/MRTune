@@ -38,9 +38,14 @@ import {
   renderFullscreenPlayer,
   playYTPlaylist,
 } from '../components/fullscreen.js';
+import { stopPortraitSpotifyCanvas } from '../components/canvasEngine.js';
 import { downloadCurrentSong, formatTime, openLyrics, saveJSON } from '../utils/utils.js';
 import { renderLyricsPanel } from '../components/lyrics.js';
 import { updateWavyProgress } from '../components/wavyProgress.js';
+import { downloadTrackToDevice, scanLocalMusicLibrary } from '../services/downloadService.js';
+import { getScrobblerConfig, saveScrobblerConfig } from '../services/scrobbler.js';
+import { applyThemeMode } from '../services/themeManager.js';
+import { applyDynamicArtworkTheme } from '../services/colorExtractor.js';
 import {
   openArtistProfile,
   renderArtistProfile,
@@ -244,6 +249,18 @@ export function bindGlobalEvents() {
       if (action === 'toggle-fs-queue') {
         event.preventDefault();
         state.fsQueueMode = !state.fsQueueMode;
+        if (state.fsQueueMode) {
+          state.fsCanvasMode = false;
+        }
+        renderFullscreenPlayer(true);
+        return;
+      }
+      if (action === 'toggle-fs-canvas') {
+        event.preventDefault();
+        state.fsCanvasMode = !state.fsCanvasMode;
+        if (state.fsCanvasMode) {
+          state.fsQueueMode = false;
+        }
         renderFullscreenPlayer(true);
         return;
       }
@@ -329,11 +346,9 @@ export function bindGlobalEvents() {
         renderOverlay();
         return;
       }
-      if (action === 'open-rate-modal') {
-        event.preventDefault();
+      if (action === 'open-instagram') {
         state.profileMenuOpen = false;
-        state.modal = { type: 'rateApp' };
-        renderOverlay();
+        renderCurrentRoute();
         return;
       }
       if (action === 'open-support-modal') {
@@ -384,6 +399,61 @@ export function bindGlobalEvents() {
         event.preventDefault();
         state.modal = { type: 'about' };
         renderOverlay();
+        return;
+      }
+      if (action === 'open-patch-notes') {
+        event.preventDefault();
+        state.modal = { type: 'patchNotes' };
+        renderOverlay();
+        return;
+      }
+      if (action === 'open-scrobbler-settings') {
+        event.preventDefault();
+        state.modal = { type: 'scrobblerSettings' };
+        renderOverlay();
+        return;
+      }
+      if (action === 'save-scrobbler-config') {
+        event.preventDefault();
+        const lbToggle = document.getElementById('lb-enable-toggle');
+        const lbInput = document.getElementById('lb-token-input');
+        const lfmToggle = document.getElementById('lfm-enable-toggle');
+        const lfmUser = document.getElementById('lfm-user-input');
+        const lfmSession = document.getElementById('lfm-session-input');
+
+        const currentConfig = getScrobblerConfig();
+        const newConfig = {
+          ...currentConfig,
+          listenbrainzEnabled: lbToggle ? lbToggle.checked : currentConfig.listenbrainzEnabled,
+          listenbrainzToken: lbInput ? lbInput.value.trim() : currentConfig.listenbrainzToken,
+          lastfmEnabled: lfmToggle ? lfmToggle.checked : currentConfig.lastfmEnabled,
+          lastfmUsername: lfmUser ? lfmUser.value.trim() : currentConfig.lastfmUsername,
+          lastfmSessionKey: lfmSession ? lfmSession.value.trim() : currentConfig.lastfmSessionKey,
+        };
+        saveScrobblerConfig(newConfig);
+        showToast('Scrobbling settings saved successfully!');
+        state.modal = null;
+        renderOverlay();
+        return;
+      }
+      if (action === 'select-theme-mode') {
+        event.preventDefault();
+        const mode = actionNode.dataset.mode || 'dark';
+        applyThemeMode(mode, true);
+        renderOverlay();
+        renderCurrentRoute();
+        return;
+      }
+      if (action === 'toggle-artwork-theming') {
+        event.preventDefault();
+        state.dynamicArtworkTheme = !state.dynamicArtworkTheme;
+        localStorage.setItem('mrtune_artwork_theme', JSON.stringify(state.dynamicArtworkTheme));
+        showToast(state.dynamicArtworkTheme ? 'Artwork-driven theming enabled' : 'Artwork-driven theming disabled');
+        if (state.dynamicArtworkTheme && state.currentSong) {
+          applyDynamicArtworkTheme(state.currentSong);
+        }
+        renderOverlay();
+        renderCurrentRoute();
         return;
       }
       if (action === 'select-theme-accent') {
@@ -548,6 +618,7 @@ export function bindGlobalEvents() {
       if (action === 'close-fullscreen-player') {
         event.preventDefault();
         state.fullscreenPlayer = false;
+        stopPortraitSpotifyCanvas();
         renderFullscreenPlayer();
         return;
       }
@@ -582,22 +653,54 @@ export function bindGlobalEvents() {
           showToast('No song selected to download.');
           return;
         }
-        if (!state.downloads) state.downloads = [];
-        const exists = state.downloads.some((s) => s.id === targetSong.id);
-        if (exists) {
-          showToast(`"${targetSong.title}" is already in Offline Downloads.`);
+        downloadTrackToDevice(targetSong);
+        if (state.route.name === 'library') renderCurrentRoute();
+        return;
+      }
+      if (action === 'scan-local-library') {
+        event.preventDefault();
+        state.modal = null;
+        renderOverlay();
+        showToast('Scanning device storage + downloaded tracks...');
+        scanLocalMusicLibrary().then(() => {
+          if (state.route.name === 'library') renderCurrentRoute();
+        });
+        return;
+      }
+      if (action === 'quick-create-playlist') {
+        event.preventDefault();
+        const input = document.getElementById('quick-playlist-input');
+        const name = input ? input.value.trim() : '';
+        if (!name) {
+          showToast('Please enter a playlist name.');
           return;
         }
-        const dlItem = {
-          ...targetSong,
-          downloadedAt: Date.now(),
-          fileSize: '4.8 MB',
-          isOffline: true,
+        const targetSong = getSongById(songId) || state.currentSong;
+        const newPl = {
+          id: `pl-${Date.now()}`,
+          name,
+          songs: targetSong ? [targetSong] : [],
         };
-        state.downloads.unshift(dlItem);
-        saveJSON(STORAGE.DOWNLOADS, state.downloads);
-        showToast(`Downloaded "${targetSong.title}" for offline playback!`);
-        if (state.route.name === 'library') renderCurrentRoute();
+        if (!state.playlists) state.playlists = [];
+        state.playlists.push(newPl);
+        saveJSON(STORAGE.PLAYLISTS, state.playlists);
+        showToast(`Created "${name}" & added track!`);
+        renderOverlay();
+        return;
+      }
+      if (action === 'add-song-to-queue') {
+        event.preventDefault();
+        const targetSong = getSongById(songId) || state.currentSong;
+        if (targetSong) {
+          if (!state.queue) state.queue = [];
+          if (!state.queue.some((s) => s.id === targetSong.id)) {
+            state.queue.push(targetSong);
+            saveJSON(STORAGE.QUEUE, state.queue);
+            showToast(`Added "${targetSong.title}" to Queue!`);
+          } else {
+            showToast(`"${targetSong.title}" is already in Queue.`);
+          }
+        }
         return;
       }
       if (action === 'remove-download') {
@@ -793,6 +896,26 @@ export function bindGlobalEvents() {
       if (action === 'clear-queue') {
         event.preventDefault();
         clearQueue();
+        return;
+      }
+      if (action === 'save-queue-as-playlist') {
+        event.preventDefault();
+        const songs = (state.queue || []).slice(state.currentSongIndex || 0);
+        if (!songs.length && state.currentSong) songs.push(state.currentSong);
+        if (!songs.length) {
+          showToast('Queue is empty');
+          return;
+        }
+        const name = `Queue (${new Date().toLocaleDateString(undefined, { month: 'short', day: 'numeric' })})`;
+        const playlist = {
+          id: `playlist-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`,
+          name,
+          songs: [...songs],
+        };
+        state.playlists = [...(state.playlists || []), playlist];
+        saveJSON(STORAGE.PLAYLISTS, state.playlists);
+        showToast(`Saved ${songs.length} tracks to "${name}"`);
+        renderSidebarPlaylists();
         return;
       }
       if (action === 'refresh-feed') {

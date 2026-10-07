@@ -29,7 +29,7 @@ export function renderSettingsPage() {
           </div>
           <div class="settings-item-content">
             <span class="settings-item-title">Theme</span>
-            <span class="settings-item-subtitle">${state.appTheme || 'Dark (OLED)'}</span>
+            <span class="settings-item-subtitle">${state.themeMode === 'light' ? 'Material 3 Light (Frosted)' : state.themeMode === 'system' ? 'System Theme (Auto)' : 'Material 3 AMOLED Dark'}</span>
           </div>
           <i class="fa-solid fa-chevron-right settings-item-chevron"></i>
         </button>
@@ -82,7 +82,31 @@ export function renderSettingsPage() {
           <i class="fa-solid fa-chevron-right settings-item-chevron"></i>
         </button>
 
-        <!-- 6. About -->
+        <!-- 6. Scrobbling -->
+        <button class="settings-item-row" data-action="open-scrobbler-settings" type="button">
+          <div class="settings-item-icon" style="background: #ff2d55;">
+            <i class="fa-solid fa-headphones"></i>
+          </div>
+          <div class="settings-item-content">
+            <span class="settings-item-title">Scrobbling</span>
+            <span class="settings-item-subtitle">Last.fm &amp; ListenBrainz</span>
+          </div>
+          <i class="fa-solid fa-chevron-right settings-item-chevron"></i>
+        </button>
+
+        <!-- 7. Patch Notes -->
+        <button class="settings-item-row" data-action="open-patch-notes" type="button">
+          <div class="settings-item-icon" style="background: #ff9f0a;">
+            <i class="fa-solid fa-bolt"></i>
+          </div>
+          <div class="settings-item-content">
+            <span class="settings-item-title">Patch Notes</span>
+            <span class="settings-item-subtitle">v2.4.2 • Offline downloads, Scrobbling, Theming</span>
+          </div>
+          <i class="fa-solid fa-chevron-right settings-item-chevron"></i>
+        </button>
+
+        <!-- 8. About -->
         <button class="settings-item-row" data-action="open-settings-about" type="button">
           <div class="settings-item-icon" style="background: #636366;">
             <i class="fa-solid fa-circle-info"></i>
@@ -94,7 +118,19 @@ export function renderSettingsPage() {
           <i class="fa-solid fa-chevron-right settings-item-chevron"></i>
         </button>
 
-        <!-- 7. Support & Donate -->
+        <!-- 9. Instagram -->
+        <a class="settings-item-row" href="https://www.instagram.com/mr._rakshit_2.0" target="_blank" rel="noopener noreferrer" style="border: 1px solid rgba(225,48,108,0.25); background: rgba(225,48,108,0.06);">
+          <div class="settings-item-icon" style="background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);">
+            <i class="fa-brands fa-instagram" style="color: #fff;"></i>
+          </div>
+          <div class="settings-item-content">
+            <span class="settings-item-title" style="color: #fff;">Instagram</span>
+            <span class="settings-item-subtitle" style="color: #ff85a2;">@mr._rakshit_2.0</span>
+          </div>
+          <i class="fa-solid fa-arrow-up-right-from-square settings-item-chevron" style="color: rgba(255,255,255,0.4);"></i>
+        </a>
+
+        <!-- 10. Support & Donate -->
         <button class="settings-item-row" data-action="open-support-modal" type="button" style="border: 1px solid rgba(255,45,85,0.25); background: rgba(255,45,85,0.06);">
           <div class="settings-item-icon" style="background: #ff2d55;">
             <i class="fa-solid fa-heart"></i>

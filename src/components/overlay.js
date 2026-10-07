@@ -2,6 +2,7 @@ import { state, LOGO_URL } from '../config/config.js';
 import { overlayRoot } from '../config/dom.js';
 import { escapeHTML } from '../utils/utils.js';
 import { getSongById } from '../core/details.js';
+import { getScrobblerConfig, getScrobbleLogs } from '../services/scrobbler.js';
 
 export function renderOverlay() {
   if (!overlayRoot) return;
@@ -24,8 +25,11 @@ export function renderOverlay() {
             <button class="btn btn-soft" data-action="open-create-playlist" type="button" style="justify-content:flex-start; padding:12px 16px; border-radius:12px;">
               <i class="fa-solid fa-plus" style="margin-right:12px; color:var(--green);"></i> New Playlist
             </button>
+            <button class="btn btn-soft" data-action="scan-local-library" type="button" style="justify-content:flex-start; padding:12px 16px; border-radius:12px;">
+              <i class="fa-solid fa-folder-tree" style="margin-right:12px; color:#30d158;"></i> Scan Local Music Library
+            </button>
             <button class="btn btn-soft" data-action="pick-local-audio" type="button" style="justify-content:flex-start; padding:12px 16px; border-radius:12px;">
-              <i class="fa-solid fa-folder-open" style="margin-right:12px; color:#ff9f0a;"></i> Import Local Audio Files
+              <i class="fa-solid fa-folder-open" style="margin-right:12px; color:#ff9f0a;"></i> Import Audio Files
             </button>
             <button class="btn btn-soft" data-action="open-settings-backup" type="button" style="justify-content:flex-start; padding:12px 16px; border-radius:12px;">
               <i class="fa-solid fa-rotate" style="margin-right:12px; color:#34c759;"></i> Backup &amp; Restore Library
@@ -63,34 +67,6 @@ export function renderOverlay() {
               <input type="text" id="signin-name-input" name="userName" class="input" value="${escapeHTML(state.userName || '')}" placeholder="Enter your name..." style="width:100%; padding:12px 14px; background:#18181b; border:1px solid rgba(255,255,255,0.15); border-radius:10px; color:#fff; margin-bottom:16px; font-size:1rem;" required />
               <button class="btn btn-primary" data-action="save-profile-name" type="submit" style="width:100%; padding:14px; font-size:1rem; font-weight:700;">Save Profile</button>
             </form>
-          </div>
-        </article>
-      </section>
-    `;
-    return;
-  }
-
-  if (state.modal.type === 'rateApp') {
-    overlayRoot.innerHTML = `
-      <section class="overlay" data-action="dismiss-overlay">
-        <article class="modal" style="max-width: 380px; text-align:center;">
-          <header class="modal-head" style="justify-content:flex-end;">
-            <button class="icon-btn" data-action="close-modal" type="button" aria-label="Close" style="width:32px; height:32px; border-radius:999px;">
-              <i class="fa-solid fa-xmark"></i>
-            </button>
-          </header>
-          <div class="modal-body" style="padding-top:0;">
-            <div style="font-size:2.4rem; color:#ffb703; margin-bottom:12px;">
-              <i class="fa-solid fa-star"></i>
-              <i class="fa-solid fa-star"></i>
-              <i class="fa-solid fa-star"></i>
-              <i class="fa-solid fa-star"></i>
-              <i class="fa-solid fa-star"></i>
-            </div>
-            <h3 style="font-size:1.25rem; font-weight:800; color:#fff; margin-bottom:6px;">Enjoying MRTune?</h3>
-            <p style="font-size:0.85rem; color:var(--muted); margin-bottom:20px; line-height:1.45;">Tap stars to rate us! Your feedback helps us keep developing free, ad-free music for everyone.</p>
-            <button class="btn btn-primary" data-action="close-modal" type="button" style="width:100%; padding:12px; margin-bottom:8px;">Submit 5 Stars</button>
-            <button class="btn btn-soft" data-action="close-modal" type="button" style="width:100%;">Not Now</button>
           </div>
         </article>
       </section>
@@ -220,31 +196,57 @@ export function renderOverlay() {
     }
     overlayRoot.innerHTML = `
        <section class="overlay" data-action="dismiss-overlay">
-         <article class="modal">
+         <article class="modal" style="max-width: 440px; max-height: 85vh; display: flex; flex-direction: column;">
            <header class="modal-head">
-             <h2 class="modal-title">Add to Playlist</h2>
+             <h2 class="modal-title"><i class="fa-solid fa-list-check" style="margin-right:8px; color:var(--green);"></i>Add to Playlist</h2>
              <button class="icon-btn" data-action="close-modal" type="button" aria-label="Close" style="width:32px; height:32px; border-radius:999px;">
                <i class="fa-solid fa-xmark"></i>
              </button>
            </header>
-           <div class="modal-body">
-             <p style="color:var(--muted); font-size:0.875rem;">${escapeHTML(song.title)} \u2022 ${escapeHTML(song.artist)}</p>
-             <div style="display:flex; flex-direction:column; gap:8px;">
-               ${state.playlists
-                 .map((playlist) => {
-                   const exists = playlist.songs.some(
-                     (item) => item.id === song.id
-                   );
-                   return `
-                   <button class="btn btn-soft" style="justify-content:space-between;" data-action="playlist-toggle-song" data-song-id="${escapeHTML(song.id)}" data-playlist-id="${escapeHTML(playlist.id)}" type="button">
-                     <span>${escapeHTML(playlist.name)}</span>
-                     <span style="color:var(--muted); font-size:0.8125rem;">${exists ? 'Remove' : 'Add'}</span>
-                   </button>
-                 `;
-                 })
-                 .join('')}
+           <div class="modal-body" style="overflow-y: auto; padding-top: 4px;">
+             <!-- Track Mini Banner -->
+             <div style="display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,0.05); padding: 10px 12px; border-radius: 12px; margin-bottom: 14px; border: 1px solid rgba(255,255,255,0.08);">
+               <img src="${escapeHTML(song.coverUrl)}" style="width: 44px; height: 44px; border-radius: 8px; object-fit: cover;" alt="" />
+               <div style="flex: 1; min-width: 0;">
+                 <h4 style="font-size: 0.9rem; font-weight: 700; color: #fff; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHTML(song.title)}</h4>
+                 <p style="color: var(--muted); font-size: 0.75rem; margin: 2px 0 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHTML(song.artist)}</p>
+               </div>
              </div>
-             <button class="btn btn-primary" data-action="open-create-playlist" type="button">Create New Playlist</button>
+
+             <!-- Quick New Playlist Input -->
+             <div style="display: flex; gap: 8px; margin-bottom: 14px;">
+               <input class="text-input" id="quick-playlist-input" placeholder="New playlist name..." maxlength="35" style="flex: 1; padding: 10px 14px; font-size: 0.85rem; border-radius: 10px;" />
+               <button class="btn btn-primary" data-action="quick-create-playlist" data-song-id="${escapeHTML(song.id)}" type="button" style="padding: 10px 16px; font-size: 0.85rem; border-radius: 10px; flex-shrink: 0;">
+                 <i class="fa-solid fa-plus" style="margin-right: 4px;"></i> Create
+               </button>
+             </div>
+
+             <!-- Playlist Rows List -->
+             <div style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px;">
+               ${(state.playlists || []).map((playlist) => {
+                 const exists = (playlist.songs || []).some((item) => item.id === song.id);
+                 const count = playlist.songs ? playlist.songs.length : 0;
+                 return `
+                 <button class="btn btn-soft" style="justify-content: space-between; padding: 10px 14px; border-radius: 12px; border: 1px solid ${exists ? 'rgba(29,185,84,0.3)' : 'rgba(255,255,255,0.06)'}; background: ${exists ? 'rgba(29,185,84,0.1)' : 'rgba(255,255,255,0.03)'};" data-action="playlist-toggle-song" data-song-id="${escapeHTML(song.id)}" data-playlist-id="${escapeHTML(playlist.id)}" type="button">
+                   <div style="display: flex; align-items: center; gap: 10px; text-align: left;">
+                     <div style="width: 32px; height: 32px; border-radius: 8px; background: rgba(255,255,255,0.08); display: grid; place-items: center; color: ${exists ? 'var(--green)' : 'var(--muted)'};">
+                       <i class="fa-solid fa-list-ul" style="font-size: 0.85rem;"></i>
+                     </div>
+                     <div>
+                       <div style="font-weight: 600; font-size: 0.88rem; color: #fff;">${escapeHTML(playlist.name)}</div>
+                       <div style="font-size: 0.72rem; color: var(--muted);">${count} song${count === 1 ? '' : 's'}</div>
+                     </div>
+                   </div>
+                   <div style="display: flex; align-items: center; gap: 6px;">
+                     <span style="font-size: 0.75rem; font-weight: 600; color: ${exists ? 'var(--green)' : 'var(--muted)'};">${exists ? 'Added' : 'Add'}</span>
+                     <i class="${exists ? 'fa-solid fa-circle-check' : 'fa-regular fa-circle'}" style="font-size: 1.1rem; color: ${exists ? 'var(--green)' : 'rgba(255,255,255,0.3)'};"></i>
+                   </div>
+                 </button>
+               `;
+               }).join('')}
+             </div>
+
+             <button class="btn btn-soft" data-action="close-modal" type="button" style="width: 100%; border-radius: 10px; padding: 11px;">Done</button>
            </div>
          </article>
        </section>
@@ -346,6 +348,7 @@ export function renderOverlay() {
              </div>
              <div class="meta-list" style="margin-top:12px;">
                <p class="meta-item"><i class="fa-solid fa-code" style="margin-right:8px; color:#a855f7;"></i><b>Developer:</b> Rakshittips</p>
+               <p class="meta-item"><i class="fa-brands fa-instagram" style="margin-right:8px; color:#e1306c;"></i><b>Instagram:</b> <a href="https://www.instagram.com/mr._rakshit_2.0" target="_blank" rel="noopener noreferrer" style="color:#e1306c; text-decoration:underline;">@mr._rakshit_2.0</a></p>
                <p class="meta-item"><i class="fa-brands fa-github" style="margin-right:8px; color:var(--green);"></i><b>Open Source:</b> <a href="https://github.com/Rakshittips/MRTune" target="_blank" rel="noopener" style="color:var(--green); text-decoration:underline;">github.com/Rakshittips/MRTune</a></p>
                <p class="meta-item"><i class="fa-solid fa-bolt" style="margin-right:8px; color:#ff9f0a;"></i><b>Audio Stream:</b> YouTube High-Fidelity Audio Proxy</p>
                <p class="meta-item"><i class="fa-solid fa-shield-halved" style="margin-right:8px; color:#0a84ff;"></i><b>Privacy:</b> 100% Client-Side &amp; Local Storage Only</p>
@@ -364,7 +367,10 @@ export function renderOverlay() {
                  <i class="fa-solid fa-chevron-right" style="color:rgba(255,255,255,0.4); font-size:0.75rem;"></i>
                </button>
              </div>
-             <div style="margin-top:8px;">
+             <div style="margin-top:8px; display:flex; flex-direction:column; gap:8px;">
+               <button class="btn btn-soft" data-action="open-patch-notes" type="button" style="width:100%; justify-content:center; border:1px solid rgba(255,255,255,0.1);">
+                 <i class="fa-solid fa-bolt" style="color:#ff9f0a; margin-right:8px;"></i> View Latest Patch Notes
+               </button>
                <button class="btn btn-soft" data-action="close-modal" type="button" style="width:100%;">Done</button>
              </div>
            </div>
@@ -374,8 +380,199 @@ export function renderOverlay() {
     return;
   }
 
+  if (state.modal.type === 'patchNotes') {
+    overlayRoot.innerHTML = `
+      <section class="overlay" data-action="dismiss-overlay">
+        <article class="modal" style="max-width: 480px; max-height: 88vh; display:flex; flex-direction:column;">
+          <header class="modal-head">
+            <div>
+              <h2 class="modal-title"><i class="fa-solid fa-bolt" style="margin-right:8px; color:#ff9f0a;"></i>MRTune Patch Notes</h2>
+              <span style="font-size:0.75rem; color:var(--green); font-weight:700; background:rgba(29,185,84,0.15); padding:2px 8px; border-radius:999px; margin-top:4px; display:inline-block;">v2.4.2 — Latest Release</span>
+            </div>
+            <button class="icon-btn" data-action="close-modal" type="button" aria-label="Close" style="width:32px; height:32px; border-radius:999px;">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </header>
+          <div class="modal-body" style="overflow-y:auto; padding-top:6px;">
+            <div style="display:flex; flex-direction:column; gap:10px;">
+
+              <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:12px 14px;">
+                <div style="font-weight:700; color:#fff; font-size:0.92rem; display:flex; align-items:center; gap:8px;">
+                  <i class="fa-solid fa-download" style="color:var(--green);"></i> Offline Downloads
+                </div>
+                <p style="font-size:0.8rem; color:var(--muted); margin-top:4px; line-height:1.4;">
+                  Save tracks to device with embedded metadata + cover art. 100% offline playback via IndexedDB.
+                </p>
+              </div>
+
+              <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:12px 14px;">
+                <div style="font-weight:700; color:#fff; font-size:0.92rem; display:flex; align-items:center; gap:8px;">
+                  <i class="fa-solid fa-folder-tree" style="color:#0a84ff;"></i> Local Music Library Scanning
+                </div>
+                <p style="font-size:0.8rem; color:var(--muted); margin-top:4px; line-height:1.4;">
+                  Device storage + downloaded tracks combined in unified local library with metadata tags.
+                </p>
+              </div>
+
+              <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:12px 14px;">
+                <div style="font-weight:700; color:#fff; font-size:0.92rem; display:flex; align-items:center; gap:8px;">
+                  <i class="fa-solid fa-headphones" style="color:#ff2d55;"></i> Last.fm + ListenBrainz Scrobbling
+                </div>
+                <p style="font-size:0.8rem; color:var(--muted); margin-top:4px; line-height:1.4;">
+                  Real-time scrobbling and playback tracking to Last.fm and ListenBrainz.
+                </p>
+              </div>
+
+              <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:12px 14px;">
+                <div style="font-weight:700; color:#fff; font-size:0.92rem; display:flex; align-items:center; gap:8px;">
+                  <i class="fa-solid fa-list-check" style="color:#a855f7;"></i> Add-to-Playlist Picker
+                </div>
+                <p style="font-size:0.8rem; color:var(--muted); margin-top:4px; line-height:1.4;">
+                  Upgraded picker with song info, quick playlist creation, and multi-playlist toggling.
+                </p>
+              </div>
+
+              <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:12px 14px;">
+                <div style="font-weight:700; color:#fff; font-size:0.92rem; display:flex; align-items:center; gap:8px;">
+                  <i class="fa-solid fa-palette" style="color:#ff9f0a;"></i> Dynamic Artwork-Driven Theming
+                </div>
+                <p style="font-size:0.8rem; color:var(--muted); margin-top:4px; line-height:1.4;">
+                  Adaptive hues and glowing liquid glass backgrounds extracted from album cover art.
+                </p>
+              </div>
+
+              <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:12px 14px;">
+                <div style="font-weight:700; color:#fff; font-size:0.92rem; display:flex; align-items:center; gap:8px;">
+                  <i class="fa-solid fa-arrows-up-down-left-right" style="color:#30d158;"></i> Draggable Bottom Nav Bar
+                </div>
+                <p style="font-size:0.8rem; color:var(--muted); margin-top:4px; line-height:1.4;">
+                  Draggable dock with elastic spring physics, liquid capsule stretch, and snap-back.
+                </p>
+              </div>
+
+              <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:12px 14px;">
+                <div style="font-weight:700; color:#fff; font-size:0.92rem; display:flex; align-items:center; gap:8px;">
+                  <i class="fa-solid fa-arrow-left" style="color:#64d2ff;"></i> Back Gesture to Dismiss Lyrics
+                </div>
+                <p style="font-size:0.8rem; color:var(--muted); margin-top:4px; line-height:1.4;">
+                  Swipe right from lyrics screen to instantly return to music view.
+                </p>
+              </div>
+
+              <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:12px 14px;">
+                <div style="font-weight:700; color:#fff; font-size:0.92rem; display:flex; align-items:center; gap:8px;">
+                  <i class="fa-solid fa-shield-virus" style="color:#ff453a;"></i> 403 &amp; Stream Stalls Fixed
+                </div>
+                <p style="font-size:0.8rem; color:var(--muted); margin-top:4px; line-height:1.4;">
+                  Updated YouTube Music client versions, shared HTTP headers, and 30-min resolution cache.
+                </p>
+              </div>
+
+              <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:12px 14px;">
+                <div style="font-weight:700; color:#fff; font-size:0.92rem; display:flex; align-items:center; gap:8px;">
+                  <i class="fa-solid fa-check-double" style="color:#ffd60a;"></i> ListenBrainz Finished Track Logging
+                </div>
+                <p style="font-size:0.8rem; color:var(--muted); margin-top:4px; line-height:1.4;">
+                  Finished tracks accurately recorded with listen_type "single" and precise timestamps.
+                </p>
+              </div>
+
+              <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:12px 14px;">
+                <div style="font-weight:700; color:#fff; font-size:0.92rem; display:flex; align-items:center; gap:8px;">
+                  <i class="fa-solid fa-hand-pointer" style="color:#bf5af2;"></i> Accidental Drag Protection on Queue
+                </div>
+                <p style="font-size:0.8rem; color:var(--muted); margin-top:4px; line-height:1.4;">
+                  Vertical scrolling no longer triggers accidental queue adds on song rows.
+                </p>
+              </div>
+
+            </div>
+
+            <button class="btn btn-primary" data-action="close-modal" type="button" style="width:100%; margin-top:16px; border-radius:10px; padding:12px;">Got it</button>
+          </div>
+        </article>
+      </section>
+    `;
+    return;
+  }
+
+  if (state.modal.type === 'scrobblerSettings') {
+    const config = getScrobblerConfig();
+    const logs = getScrobbleLogs();
+    overlayRoot.innerHTML = `
+      <section class="overlay" data-action="dismiss-overlay">
+        <article class="modal" style="max-width: 460px; max-height: 88vh; display:flex; flex-direction:column;">
+          <header class="modal-head">
+            <h2 class="modal-title"><i class="fa-solid fa-headphones" style="margin-right:8px; color:#ff2d55;"></i>Scrobbling Settings</h2>
+            <button class="icon-btn" data-action="close-modal" type="button" aria-label="Close" style="width:32px; height:32px; border-radius:999px;">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </header>
+          <div class="modal-body" style="overflow-y:auto; padding-top:6px;">
+            <!-- ListenBrainz Config -->
+            <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:14px; padding:14px; margin-bottom:14px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <span style="background:#ff2d55; color:#fff; border-radius:6px; font-weight:800; font-size:0.7rem; padding:2px 6px;">LB</span>
+                  <strong style="color:#fff; font-size:0.95rem;">ListenBrainz</strong>
+                </div>
+                <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                  <input type="checkbox" id="lb-enable-toggle" ${config.listenbrainzEnabled ? 'checked' : ''} style="accent-color:var(--green); width:18px; height:18px;" />
+                  <span style="font-size:0.8rem; color:${config.listenbrainzEnabled ? 'var(--green)' : 'var(--muted)'}; font-weight:600;">${config.listenbrainzEnabled ? 'Enabled' : 'Disabled'}</span>
+                </label>
+              </div>
+              <p style="font-size:0.78rem; color:var(--muted); margin-bottom:10px;">
+                Enter your User Token from <a href="https://listenbrainz.org/profile/" target="_blank" rel="noopener noreferrer" style="color:var(--green); text-decoration:underline;">listenbrainz.org</a>
+              </p>
+              <input class="text-input" id="lb-token-input" type="password" placeholder="ListenBrainz User Token" value="${escapeHTML(config.listenbrainzToken || '')}" style="width:100%; padding:10px 12px; font-size:0.85rem; border-radius:10px;" />
+            </div>
+
+            <!-- Last.fm Config -->
+            <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:14px; padding:14px; margin-bottom:14px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <span style="background:#d51007; color:#fff; border-radius:6px; font-weight:800; font-size:0.7rem; padding:2px 6px;">LFM</span>
+                  <strong style="color:#fff; font-size:0.95rem;">Last.fm</strong>
+                </div>
+                <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                  <input type="checkbox" id="lfm-enable-toggle" ${config.lastfmEnabled ? 'checked' : ''} style="accent-color:var(--green); width:18px; height:18px;" />
+                  <span style="font-size:0.8rem; color:${config.lastfmEnabled ? 'var(--green)' : 'var(--muted)'}; font-weight:600;">${config.lastfmEnabled ? 'Enabled' : 'Disabled'}</span>
+                </label>
+              </div>
+              <p style="font-size:0.78rem; color:var(--muted); margin-bottom:10px;">
+                Connect your Last.fm account for scrobbles.
+              </p>
+              <input class="text-input" id="lfm-user-input" placeholder="Last.fm Username" value="${escapeHTML(config.lastfmUsername || '')}" style="width:100%; padding:10px 12px; font-size:0.85rem; border-radius:10px; margin-bottom:8px;" />
+              <input class="text-input" id="lfm-session-input" type="password" placeholder="Session Key (Optional)" value="${escapeHTML(config.lastfmSessionKey || '')}" style="width:100%; padding:10px 12px; font-size:0.85rem; border-radius:10px;" />
+            </div>
+
+            <!-- Recent Scrobble History Logs -->
+            <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:14px; padding:14px; margin-bottom:14px;">
+              <h4 style="font-size:0.85rem; font-weight:700; color:#fff; margin-bottom:8px;">Recent Scrobble Activity</h4>
+              ${logs.length ? `
+                <div style="display:flex; flex-direction:column; gap:6px; max-height:120px; overflow-y:auto;">
+                  ${logs.slice(0, 8).map(l => `
+                    <div style="display:flex; justify-content:space-between; font-size:0.75rem; padding:4px 0; border-bottom:1px solid rgba(255,255,255,0.05);">
+                      <span style="color:#fff; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:260px;">${escapeHTML(l.title)} — ${escapeHTML(l.artist)}</span>
+                      <span style="color:${l.status === 'Logged' ? 'var(--green)' : '#ff9f0a'}; font-weight:600;">${escapeHTML(l.status)}</span>
+                    </div>
+                  `).join('')}
+                </div>
+              ` : `<p style="font-size:0.78rem; color:var(--muted);">No scrobbles logged yet. Start playing a track!</p>`}
+            </div>
+
+            <button class="btn btn-primary" data-action="save-scrobbler-config" type="button" style="width:100%; border-radius:10px; padding:12px;">Save Settings</button>
+          </div>
+        </article>
+      </section>
+    `;
+    return;
+  }
+
   if (state.modal.type === 'settingsTheme') {
+    const currentMode = state.themeMode || 'dark';
     const currentAccent = state.accentColor || '#1db954';
+    const isDynamic = state.dynamicArtworkTheme !== false;
     const themes = [
       { id: 'emerald', name: 'Spotify Emerald', color: '#1db954' },
       { id: 'blue', name: 'iOS Royal Blue', color: '#0a84ff' },
@@ -388,22 +585,57 @@ export function renderOverlay() {
       <section class="overlay" data-action="dismiss-overlay">
         <article class="modal" style="max-width: 440px;">
           <header class="modal-head">
-            <h2 class="modal-title"><i class="fa-solid fa-sun" style="margin-right:8px; color:#0a84ff;"></i>Appearance &amp; Theme</h2>
+            <h2 class="modal-title"><i class="fa-solid fa-palette" style="margin-right:8px; color:#0a84ff;"></i>Theme &amp; Appearance</h2>
             <button class="icon-btn" data-action="close-modal" type="button" aria-label="Close" style="width:32px; height:32px; border-radius:999px;">
               <i class="fa-solid fa-xmark"></i>
             </button>
           </header>
-          <div class="modal-body">
-            <p style="font-size:0.85rem; color:var(--muted); margin-bottom:14px;">Select your primary accent color for buttons, active indicators, and glowing highlights:</p>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-              ${themes.map((t) => `
-                <button class="theme-choice-card ${currentAccent.toLowerCase() === t.color.toLowerCase() ? 'active' : ''}" data-action="select-theme-accent" data-color="${t.color}" type="button" style="display:flex; align-items:center; gap:10px; padding:12px; border-radius:12px; background:rgba(255,255,255,0.05); border:1px solid ${currentAccent.toLowerCase() === t.color.toLowerCase() ? t.color : 'rgba(255,255,255,0.1)'}; color:#fff; cursor:pointer; text-align:left; transition:all 0.15s ease;">
-                  <span style="width:22px; height:22px; border-radius:50%; background:${t.color}; box-shadow:0 0 10px ${t.color}88; flex-shrink:0;"></span>
-                  <span style="font-size:0.85rem; font-weight:600;">${t.name}</span>
+          <div class="modal-body" style="display:flex; flex-direction:column; gap:16px;">
+            <!-- Material 3 Light / Dark / System Segmented Control -->
+            <div>
+              <span style="font-size:0.75rem; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--muted); display:block; margin-bottom:8px;">Material 3 Theme Mode</span>
+              <div class="m3-theme-segmented-group" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px; background:rgba(255,255,255,0.06); padding:4px; border-radius:14px; border:1px solid rgba(255,255,255,0.08);">
+                <button class="m3-theme-segment-btn ${currentMode === 'light' ? 'active' : ''}" data-action="select-theme-mode" data-mode="light" type="button" style="display:flex; flex-direction:column; align-items:center; gap:4px; padding:10px 6px; border-radius:10px; border:none; background:${currentMode === 'light' ? 'rgba(255,255,255,0.22)' : 'transparent'}; color:#fff; cursor:pointer; transition:all 0.2s ease;">
+                  <i class="fa-solid fa-sun" style="font-size:1rem; color:${currentMode === 'light' ? '#ff9f0a' : 'inherit'};"></i>
+                  <span style="font-size:0.78rem; font-weight:600;">Light</span>
                 </button>
-              `).join('')}
+                <button class="m3-theme-segment-btn ${currentMode === 'dark' ? 'active' : ''}" data-action="select-theme-mode" data-mode="dark" type="button" style="display:flex; flex-direction:column; align-items:center; gap:4px; padding:10px 6px; border-radius:10px; border:none; background:${currentMode === 'dark' ? 'rgba(255,255,255,0.22)' : 'transparent'}; color:#fff; cursor:pointer; transition:all 0.2s ease;">
+                  <i class="fa-solid fa-moon" style="font-size:1rem; color:${currentMode === 'dark' ? '#0a84ff' : 'inherit'};"></i>
+                  <span style="font-size:0.78rem; font-weight:600;">AMOLED Dark</span>
+                </button>
+                <button class="m3-theme-segment-btn ${currentMode === 'system' ? 'active' : ''}" data-action="select-theme-mode" data-mode="system" type="button" style="display:flex; flex-direction:column; align-items:center; gap:4px; padding:10px 6px; border-radius:10px; border:none; background:${currentMode === 'system' ? 'rgba(255,255,255,0.22)' : 'transparent'}; color:#fff; cursor:pointer; transition:all 0.2s ease;">
+                  <i class="fa-solid fa-circle-half-stroke" style="font-size:1rem; color:${currentMode === 'system' ? '#a855f7' : 'inherit'};"></i>
+                  <span style="font-size:0.78rem; font-weight:600;">System Auto</span>
+                </button>
+              </div>
             </div>
-            <div style="margin-top:20px; display:flex; justify-content:flex-end;">
+
+            <!-- Dynamic Artwork-Driven Theming Toggle -->
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 14px; background:rgba(255,255,255,0.04); border-radius:12px; border:1px solid rgba(255,255,255,0.08); gap:12px;">
+              <div style="flex:1;">
+                <strong style="display:block; font-size:0.9rem; color:#fff; font-weight:700;">Artwork-Driven Theming</strong>
+                <span style="font-size:0.76rem; color:var(--muted); line-height:1.4; display:block;">Dynamically tints player surfaces, waveforms, and glowing highlights using album artwork</span>
+              </div>
+              <label class="liquid-switch">
+                <input type="checkbox" ${isDynamic ? 'checked' : ''} data-action="toggle-artwork-theming" />
+                <span class="liquid-switch-slider"></span>
+              </label>
+            </div>
+
+            <!-- Accent Palette Selection -->
+            <div>
+              <span style="font-size:0.75rem; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--muted); display:block; margin-bottom:8px;">Base Accent Tint</span>
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+                ${themes.map((t) => `
+                  <button class="theme-choice-card ${currentAccent.toLowerCase() === t.color.toLowerCase() ? 'active' : ''}" data-action="select-theme-accent" data-color="${t.color}" type="button" style="display:flex; align-items:center; gap:8px; padding:10px 12px; border-radius:10px; background:rgba(255,255,255,0.05); border:1px solid ${currentAccent.toLowerCase() === t.color.toLowerCase() ? t.color : 'rgba(255,255,255,0.1)'}; color:#fff; cursor:pointer; text-align:left; transition:all 0.15s ease;">
+                    <span style="width:18px; height:18px; border-radius:50%; background:${t.color}; box-shadow:0 0 8px ${t.color}88; flex-shrink:0;"></span>
+                    <span style="font-size:0.82rem; font-weight:600;">${t.name}</span>
+                  </button>
+                `).join('')}
+              </div>
+            </div>
+
+            <div style="margin-top:6px; display:flex; justify-content:flex-end;">
               <button class="btn btn-primary" data-action="close-modal" type="button" style="min-width:90px;">Done</button>
             </div>
           </div>

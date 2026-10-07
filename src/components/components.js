@@ -406,26 +406,35 @@ function renderLibraryCategoryView(category, libraryTitle) {
       ? `<div class="song-table">${allSongs.map((s, i) => renderSongRow(s, i + 1, 'all')).join('')}</div>`
       : `<div class="empty-state"><i class="fa-solid fa-music"></i><h2>No songs yet</h2><p>Favorite tracks to see them here.</p></div>`;
   } else if (category === 'local') {
-    title = 'LocalSongs';
-    const local = state.localSongs || [];
+    title = 'Local & Offline Songs';
+    // Combine imported device files and offline downloaded tracks
+    const dlSongs = (state.downloads || []).map((d) => ({ ...d, isLocal: true, source: 'download' }));
+    const devSongs = state.localSongs || [];
+    const combinedLocal = dedupeSongs([...dlSongs, ...devSongs]);
     content = `
-      <div style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 16px 20px; border-radius: var(--radius-md);">
+      <div style="margin-bottom: 20px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 16px 20px; border-radius: var(--radius-md);">
         <div>
-          <div style="font-weight: 700; color: #fff; font-size: 1rem;">
-            <i class="fa-solid fa-folder-open" style="color: var(--green); margin-right: 8px;"></i> Offline Device Files
+          <div style="font-weight: 700; color: #fff; font-size: 1rem; display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-folder-tree" style="color: var(--green);"></i> Local Music Library
+            <span style="font-size: 0.72rem; background: rgba(29,185,84,0.2); color: var(--green); padding: 2px 8px; border-radius: 999px; font-weight: 700;">Offline Ready</span>
           </div>
-          <div style="font-size: 0.8rem; color: var(--muted); margin-top: 2px;">
-            ${local.length} audio files imported from your device
+          <div style="font-size: 0.8rem; color: var(--muted); margin-top: 3px;">
+            ${combinedLocal.length} track(s) total (${dlSongs.length} downloaded, ${devSongs.length} from storage)
           </div>
         </div>
-        <button class="btn btn-primary" data-action="pick-local-audio" type="button" style="font-size: 0.85rem; padding: 10px 18px;">
-          <i class="fa-solid fa-plus" style="margin-right: 6px;"></i> Import Files
-        </button>
+        <div style="display: flex; gap: 8px;">
+          <button class="btn btn-primary" data-action="scan-local-library" type="button" style="font-size: 0.82rem; padding: 9px 16px; border-radius: 10px;">
+            <i class="fa-solid fa-arrows-rotate" style="margin-right: 6px;"></i> Scan Storage
+          </button>
+          <button class="btn btn-soft" data-action="pick-local-audio" type="button" style="font-size: 0.82rem; padding: 9px 14px; border-radius: 10px;">
+            <i class="fa-solid fa-plus" style="margin-right: 6px;"></i> Import Files
+          </button>
+        </div>
         <input type="file" id="local-audio-file-input" multiple accept="audio/*,.mp3,.m4a,.wav,.ogg,.flac" style="display:none;" />
       </div>
-      ${local.length
-        ? `<div class="song-table">${local.map((s, i) => renderSongRow(s, i + 1, 'local')).join('')}</div>`
-        : `<div class="empty-state"><i class="fa-solid fa-folder-open"></i><h2>No local audio files imported</h2><p>Select MP3, M4A, or WAV files from your phone or PC to play offline directly.</p></div>`}
+      ${combinedLocal.length
+        ? `<div class="song-table">${combinedLocal.map((s, i) => renderSongRow(s, i + 1, 'local')).join('')}</div>`
+        : `<div class="empty-state"><i class="fa-solid fa-folder-open"></i><h2>No local audio files or downloads yet</h2><p>Click "Scan Storage" or download tracks from search/home for complete offline music enjoyment.</p></div>`}
     `;
   }
 
@@ -545,6 +554,12 @@ export function renderSongRow(song, index, source, playlistId = '') {
        <div class="song-actions">
          <button class="song-action-btn ${isFav ? 'active' : ''}" data-action="toggle-favorite" data-song-id="${escapeHTML(song.id)}" type="button" onclick="event.stopPropagation();" title="Toggle Favorite">
            <i class="${isFav ? 'fa-solid fa-heart' : 'fa-regular fa-heart'}"></i>
+         </button>
+         <button class="song-action-btn" data-action="add-song-to-queue" data-song-id="${escapeHTML(song.id)}" type="button" onclick="event.stopPropagation();" title="Add to Queue">
+           <i class="fa-solid fa-list-check"></i>
+         </button>
+         <button class="song-action-btn ${state.downloads?.some((d) => d.id === song.id) ? 'active' : ''}" data-action="download-song" data-song-id="${escapeHTML(song.id)}" type="button" onclick="event.stopPropagation();" title="Download for Offline">
+           <i class="${state.downloads?.some((d) => d.id === song.id) ? 'fa-solid fa-circle-check' : 'fa-solid fa-download'}"></i>
          </button>
          <button class="song-action-btn" data-action="open-playlist-picker" data-song-id="${escapeHTML(song.id)}" type="button" onclick="event.stopPropagation();" title="Add to Playlist">
            <i class="fa-solid fa-plus"></i>

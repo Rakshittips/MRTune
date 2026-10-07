@@ -16,6 +16,8 @@ import {
 import { persistPlayer } from '../core/details.js';
 import { loadJSON, saveJSON } from '../utils/utils.js';
 import { refreshPlaybackUI } from '../components/playerBar.js';
+import { handleTrackStart, handleTrackProgress, handleTrackFinished } from './scrobbler.js';
+import { applyDynamicArtworkTheme } from './colorExtractor.js';
 
 export function loadYTApi() {
   if (globals.ytPlayer) return;
@@ -134,6 +136,10 @@ export function startYTPoll() {
       const dur = globals.ytPlayer.getDuration();
       if (dur && dur > 0) state.duration = dur;
 
+      if (state.currentSong) {
+        handleTrackProgress(state.currentSong, state.progress, state.duration);
+      }
+
       const now = Date.now();
       if (state.currentSong && now - lastSaveTime > 2000) {
         saveJSON(STORAGE.CURRENT_TIME, state.progress);
@@ -153,7 +159,11 @@ export function onPlayerStateChange(event) {
     globals.consecutiveErrors = 0;
     state.isPlaying = true;
     state.isLoading = false;
-    if (state.currentSong) state.currentSong._triedFallback = false;
+    if (state.currentSong) {
+      state.currentSong._triedFallback = false;
+      applyDynamicArtworkTheme(state.currentSong);
+      handleTrackStart(state.currentSong);
+    }
     if (navigator.mediaSession)
       navigator.mediaSession.playbackState = 'playing';
     startYTPoll();
@@ -169,8 +179,11 @@ export function onPlayerStateChange(event) {
     }
     clearInterval(globals.ytPollInterval);
   } else if (event.data === 0) {
-    // ENDED
+    // ENDED - Log finished track for ListenBrainz & Last.fm
     clearInterval(globals.ytPollInterval);
+    if (state.currentSong) {
+      handleTrackFinished(state.currentSong, false);
+    }
     if (state.repeatMode === 'one') {
       globals.ytPlayer.seekTo(0);
       globals.ytPlayer.playVideo();

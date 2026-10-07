@@ -190,6 +190,16 @@ function setupElasticInteractions() {
     // Shift center with soft rubber dampening
     const newTranslateX = startTranslateX + (clampedDelta * 0.76);
 
+    // Spring effect on island container for organic feel
+    const springY = Math.max(-22, Math.min(38, deltaY * 0.42));
+    const springX = Math.max(-30, Math.min(30, deltaX * 0.18));
+    islandEl.style.transition = 'none';
+    islandEl.style.transform = `translate(${springX}px, ${springY}px)`;
+
+    // Android 12+ real refracting glass: dynamic chromatic aberration caustic angle
+    const refractionAngle = 135 + (clampedDelta / islandWidth) * 55;
+    islandEl.style.setProperty('--refraction-angle', `${refractionAngle}deg`);
+
     capsuleEl.style.transition = 'transform 0.06s ease-out, box-shadow 0.12s ease';
     capsuleEl.style.transform = `translateX(${newTranslateX}px) scale(${scaleX}, ${scaleY})`;
 
@@ -212,6 +222,11 @@ function setupElasticInteractions() {
     isDragging = false;
     hasDragged = false;
     capsuleEl.classList.remove('is-pressed', 'is-stretching');
+
+    // Spring dock back to resting position with smooth overshoot
+    islandEl.style.transition = 'transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)';
+    islandEl.style.transform = 'translate(0, 0)';
+    islandEl.style.setProperty('--refraction-angle', '135deg');
 
     try {
       if (pointerId !== null && islandEl.hasPointerCapture(pointerId)) {

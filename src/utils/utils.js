@@ -1,6 +1,7 @@
 import { showToast, state } from '../config/config.js';
 import { renderLyricsPanel } from '../components/lyrics.js';
 import { idbSet } from './idb.js';
+import { downloadTrackToDevice } from '../services/downloadService.js';
 
 export function formatTime(value) {
   const seconds = Math.max(0, Math.floor(Number(value) || 0));
@@ -38,9 +39,11 @@ export function saveJSON(key, value) {
 }
 
 export async function downloadCurrentSong() {
-  showToast(
-    'Downloading directly from YouTube embeds is restricted. We recommend adding this song to a playlist instead!'
-  );
+  if (state.currentSong) {
+    await downloadTrackToDevice(state.currentSong);
+  } else {
+    showToast('No track currently playing to download.');
+  }
 }
 
 export async function openLyrics() {

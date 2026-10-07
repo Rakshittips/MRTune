@@ -9,6 +9,10 @@ import {
   teardownWavyProgress,
   updateWavyProgress,
 } from './wavyProgress.js';
+import {
+  initPortraitSpotifyCanvas,
+  stopPortraitSpotifyCanvas,
+} from './canvasEngine.js';
 
 export function renderFullscreenPlayer(force = false) {
   if (!fullscreenPlayer) return;
@@ -21,8 +25,8 @@ export function renderFullscreenPlayer(force = false) {
   fullscreenPlayer.classList.add('active');
   const song = state.currentSong;
 
-  // Track rendering ID including queue mode to allow seamless mode switching
-  const renderKey = `${song.id}-${state.fsQueueMode ? 'queue' : 'standard'}-${state.fsMenuOpen ? 'menu' : ''}`;
+  // Track rendering ID including queue and canvas mode to allow seamless mode switching
+  const renderKey = `${song.id}-${state.fsQueueMode ? 'queue' : state.fsCanvasMode ? 'canvas' : 'standard'}-${state.fsMenuOpen ? 'menu' : ''}`;
   if (!force && fullscreenPlayer.dataset.renderedKey === renderKey) {
     return;
   }
@@ -53,6 +57,10 @@ export function renderFullscreenPlayer(force = false) {
     ? `
       <div class="fs-popover-backdrop" data-action="close-fs-menu"></div>
       <div class="fs-more-popover-menu" id="fs-more-popover-menu">
+        <button class="fs-popover-item" data-action="toggle-fs-canvas" type="button">
+          <i class="fa-solid fa-film"></i>
+          <span>${state.fsCanvasMode ? 'Disable Canvas' : 'Spotify Canvas'}</span>
+        </button>
         <button class="fs-popover-item" data-action="view-song-album" type="button">
           <i class="fa-regular fa-circle-dot"></i>
           <span>View Album</span>
@@ -73,33 +81,11 @@ export function renderFullscreenPlayer(force = false) {
     `
     : '';
 
-  // Main content depending on Queue mode
-  const mainContentHTML = !state.fsQueueMode
-    ? `
-      <!-- Standard Fullscreen Artwork View (Screenshot_20261003_150610.png) -->
-      <div class="fs-standard-view">
-        <div class="fs-main-cover-box">
-          <img class="fs-main-cover-img" src="${escapeHTML(song.coverUrl)}" alt="${escapeHTML(song.title)}" />
-        </div>
-        <div class="fs-track-info-row">
-          <div class="fs-track-meta">
-            <h2 class="fs-track-title">${escapeHTML(song.title)}</h2>
-            <p class="fs-track-subtitle">Song • ${escapeHTML(song.artist || 'Unknown Artist')}</p>
-          </div>
-          <div class="fs-track-actions">
-            <button class="fs-star-btn ${isFav ? 'active' : ''}" data-action="toggle-favorite" data-song-id="${escapeHTML(song.id)}" type="button" aria-label="Favorite">
-              <i class="${isFav ? 'fa-solid fa-star' : 'fa-regular fa-star'}"></i>
-            </button>
-            <button class="fs-more-pill-btn" data-action="toggle-fs-menu" type="button" aria-label="More options">
-              <i class="fa-solid fa-ellipsis"></i>
-            </button>
-            ${popoverMenuHTML}
-          </div>
-        </div>
-      </div>
-    `
-    : `
-      <!-- Up Next / Queue View (Screenshot_20261003_150622.png) -->
+  // Main content depending on Mode (Canvas vs Queue vs Standard)
+  let mainContentHTML = '';
+  if (state.fsQueueMode) {
+    mainContentHTML = `
+      <!-- Up Next / Queue View -->
       <div class="fs-queue-view">
         <div class="fs-compact-track-row">
           <img class="fs-compact-cover-img" src="${escapeHTML(song.coverUrl)}" alt="${escapeHTML(song.title)}" />
@@ -157,6 +143,67 @@ export function renderFullscreenPlayer(force = false) {
         </div>
       </div>
     `;
+  } else if (state.fsCanvasMode) {
+    mainContentHTML = `
+      <!-- Full-screen Portrait Spotify Canvas View -->
+      <div class="fs-canvas-view">
+        <div class="fs-portrait-canvas-card">
+          <canvas id="spotify-portrait-canvas" class="fs-portrait-canvas"></canvas>
+          <div class="spotify-canvas-badge">
+            <i class="fa-brands fa-spotify"></i> Spotify Canvas
+          </div>
+          <button class="fs-canvas-switch-pill" data-action="toggle-fs-canvas" type="button" title="Switch to Artwork">
+            <i class="fa-solid fa-image"></i> Cover Art
+          </button>
+        </div>
+        <div class="fs-track-info-row fs-canvas-track-info">
+          <div class="fs-track-meta">
+            <h2 class="fs-track-title">${escapeHTML(song.title)}</h2>
+            <p class="fs-track-subtitle">Song • ${escapeHTML(song.artist || 'Unknown Artist')}</p>
+          </div>
+          <div class="fs-track-actions">
+            <button class="fs-star-btn ${isFav ? 'active' : ''}" data-action="toggle-favorite" data-song-id="${escapeHTML(song.id)}" type="button" aria-label="Favorite">
+              <i class="${isFav ? 'fa-solid fa-star' : 'fa-regular fa-star'}"></i>
+            </button>
+            <button class="fs-more-pill-btn" data-action="toggle-fs-menu" type="button" aria-label="More options">
+              <i class="fa-solid fa-ellipsis"></i>
+            </button>
+            ${popoverMenuHTML}
+          </div>
+        </div>
+      </div>
+    `;
+  } else {
+    mainContentHTML = `
+      <!-- Standard Fullscreen Artwork View -->
+      <div class="fs-standard-view">
+        <div class="fs-main-cover-box">
+          <img class="fs-main-cover-img" src="${escapeHTML(song.coverUrl)}" alt="${escapeHTML(song.title)}" />
+          <button class="fs-canvas-float-badge" data-action="toggle-fs-canvas" type="button" title="Open Spotify Canvas">
+            <i class="fa-brands fa-spotify"></i> Canvas
+          </button>
+        </div>
+        <div class="fs-track-info-row">
+          <div class="fs-track-meta">
+            <h2 class="fs-track-title">${escapeHTML(song.title)}</h2>
+            <p class="fs-track-subtitle">Song • ${escapeHTML(song.artist || 'Unknown Artist')}</p>
+          </div>
+          <div class="fs-track-actions">
+            <button class="fs-canvas-pill-btn" data-action="toggle-fs-canvas" type="button" title="View Portrait Canvas">
+              <i class="fa-solid fa-film"></i> Canvas
+            </button>
+            <button class="fs-star-btn ${isFav ? 'active' : ''}" data-action="toggle-favorite" data-song-id="${escapeHTML(song.id)}" type="button" aria-label="Favorite">
+              <i class="${isFav ? 'fa-solid fa-star' : 'fa-regular fa-star'}"></i>
+            </button>
+            <button class="fs-more-pill-btn" data-action="toggle-fs-menu" type="button" aria-label="More options">
+              <i class="fa-solid fa-ellipsis"></i>
+            </button>
+            ${popoverMenuHTML}
+          </div>
+        </div>
+      </div>
+    `;
+  }
 
   fullscreenPlayer.innerHTML = `
     <div class="fs-ios-backdrop" style="background-image: url('${escapeHTML(song.coverUrl)}');"></div>
@@ -216,6 +263,15 @@ export function renderFullscreenPlayer(force = false) {
       </div>
     </div>
   `;
+
+  if (state.fsCanvasMode) {
+    const canvas = document.getElementById('spotify-portrait-canvas');
+    if (canvas) {
+      initPortraitSpotifyCanvas(canvas, song.coverUrl);
+    }
+  } else {
+    stopPortraitSpotifyCanvas();
+  }
 }
 
 export async function playYTPlaylist(playlistId) {

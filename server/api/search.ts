@@ -5,6 +5,19 @@ const ytmusic = new YTMusic();
 let isYtMusicInitialized = false;
 let ytMusicInitPromise: Promise<void> | null = null;
 
+// In-memory stream and search resolution cache to fix stream stalls/timeouts
+const resolutionCache = new Map<string, { data: any; expiry: number }>();
+const CACHE_TTL_MS = 1000 * 60 * 30; // 30 minutes cache
+
+// Shared HTTP headers matching modern YouTube Music web client to prevent 403 errors
+const SHARED_CLIENT_HEADERS = {
+  'User-Agent':
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+  'Accept-Language': 'en-US,en;q=0.9',
+  'X-YouTube-Client-Name': '67',
+  'X-YouTube-Client-Version': '1.20241001.01.00',
+};
+
 export async function initYtMusic(): Promise<void> {
   if (isYtMusicInitialized) return;
   if (!ytMusicInitPromise) {
@@ -32,6 +45,20 @@ function formatDurationString(seconds: number): string {
   return `${m}:${s.toString().padStart(2, '0')}`;
 }
 
+async function withTimeout<T>(promise: Promise<T>, timeoutMs = 4500, fallback: T): Promise<T> {
+  let timer: NodeJS.Timeout;
+  const timeoutPromise = new Promise<T>((resolve) => {
+    timer = setTimeout(() => resolve(fallback), timeoutMs);
+  });
+  return Promise.race([
+    promise.then((res) => {
+      clearTimeout(timer);
+      return res;
+    }),
+    timeoutPromise,
+  ]);
+}
+
 export async function searchHandler(req: Request, res: Response) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
@@ -55,6 +82,12 @@ export async function searchHandler(req: Request, res: Response) {
 
   if (!query) {
     return res.status(200).json({ items: [] });
+  }
+
+  const cacheKey = `${type}:${query.toLowerCase()}`;
+  const cached = resolutionCache.get(cacheKey);
+  if (cached && cached.expiry > Date.now()) {
+    return res.status(200).json(cached.data);
   }
 
   await initYtMusic();
@@ -246,16 +279,20 @@ export async function searchHandler(req: Request, res: Response) {
         .filter((i: any) => i.id);
     }
 
-    return res.status(200).json({ items });
+    const responseData = { items };
+    resolutionCache.set(cacheKey, { data: responseData, expiry: Date.now() + CACHE_TTL_MS });
+    return res.status(200).json(responseData);
   } catch (e: any) {
     console.error('YouTube Music Search error:', e?.message || e);
     // Remote proxy fallback if ytmusic-api had a transient network failure
     try {
       const remoteRes = await fetch(
-        `https://pawtify-meow.vercel.app/api/search?q=${encodeURIComponent(query)}&type=${encodeURIComponent(type)}`
+        `https://pawtify-meow.vercel.app/api/search?q=${encodeURIComponent(query)}&type=${encodeURIComponent(type)}`,
+        { headers: SHARED_CLIENT_HEADERS }
       );
       if (remoteRes.ok) {
         const remoteData = await remoteRes.json();
+        resolutionCache.set(cacheKey, { data: remoteData, expiry: Date.now() + CACHE_TTL_MS });
         return res.status(200).json(remoteData);
       }
     } catch (_) {}

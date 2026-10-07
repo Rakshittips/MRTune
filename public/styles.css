@@ -52,6 +52,13 @@
   --glass-border: var(--liquid-border);
   --glass-shadow: var(--liquid-shadow);
   --glass-hover: var(--liquid-surface-hover);
+
+  /* Dynamic Artwork-driven Theming Engine Tokens */
+  --artwork-primary: var(--green);
+  --artwork-glow: rgba(250, 45, 72, 0.35);
+  --artwork-glow-soft: rgba(250, 45, 72, 0.18);
+  --artwork-surface: rgba(250, 45, 72, 0.08);
+  --artwork-gradient: radial-gradient(circle at 50% 20%, rgba(250, 45, 72, 0.28) 0%, rgba(0, 0, 0, 0) 70%);
 }
 
 html {

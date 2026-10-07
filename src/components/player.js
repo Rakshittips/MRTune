@@ -27,6 +27,7 @@ import {
 } from './playerBar.js';
 import { getNextSong, isValidYouTubeId, resolveToPlayableSong } from '../services/apiMapping.js';
 import { renderFullscreenPlayer } from './fullscreen.js';
+import { applyDynamicArtworkTheme } from '../services/colorExtractor.js';
 
 export async function play(song, queue = null, autoplay = true) {
   if (!song) return;
@@ -60,6 +61,7 @@ export async function play(song, queue = null, autoplay = true) {
   state.duration = playableSong.durationSec || 0;
   state.isPlaying = autoplay;
   saveJSON(STORAGE.CURRENT_TIME, 0);
+  applyDynamicArtworkTheme(playableSong);
   updateMediaSession(playableSong);
   if (navigator.mediaSession)
     navigator.mediaSession.playbackState = autoplay ? 'playing' : 'paused';
