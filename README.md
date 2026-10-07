@@ -112,7 +112,7 @@
 
 * **Developer**: Rakshittips
 * **Instagram**: [@mr._rakshit_2.0](https://www.instagram.com/mr._rakshit_2.0)
-* **Application Name**: MRTune (Pawtify)
+* **Application Name**: MRTune
 
 ---
 

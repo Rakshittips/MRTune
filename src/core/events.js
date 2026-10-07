@@ -497,7 +497,7 @@ export function bindGlobalEvents() {
         const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
-        a.download = `pawtify-library-${new Date().toISOString().slice(0, 10)}.json`;
+        a.download = `mrtune-library-${new Date().toISOString().slice(0, 10)}.json`;
         a.click();
         showToast('Library exported successfully!');
         return;
@@ -977,7 +977,7 @@ export function bindGlobalEvents() {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `pawtify-library-${new Date().toISOString().slice(0, 10)}.json`;
+        a.download = `mrtune-library-${new Date().toISOString().slice(0, 10)}.json`;
         a.click();
         URL.revokeObjectURL(url);
         showToast('Library exported successfully');

@@ -37,7 +37,7 @@ async function startServer() {
   const PORT = getPort();
   const HOST = getHost();
 
-  // Global CORS Middleware (matches pawjects/Pawtify specification)
+  // Global CORS Middleware
   app.use((_req, res, next) => {
     res.header('Access-Control-Allow-Origin', '*');
     res.header(
@@ -51,7 +51,7 @@ async function startServer() {
     next();
   });
 
-  // YouTube Music API Search Endpoint (ported directly from pawjects/Pawtify)
+  // YouTube Music API Search Endpoint
   app.all('/api/search', searchHandler);
 
   // Health check endpoint

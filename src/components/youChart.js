@@ -9,7 +9,7 @@ let useSampleMix = false;
 
 // Color palette specifically calibrated for AMOLED dark glass UI
 const CHART_PALETTE = [
-  '#10b981', // Emerald Green (Pawtify signature)
+  '#10b981', // Emerald Green (MRTune signature)
   '#06b6d4', // Electric Cyan
   '#8b5cf6', // Vivid Purple
   '#f59e0b', // Warm Amber

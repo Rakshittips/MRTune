@@ -1,6 +1,6 @@
 {
-  "name": "Pawtify",
-  "short_name": "Pawtify",
+  "name": "MRTune",
+  "short_name": "MRTune",
   "description": "A privacy-friendly, distraction-free music streaming experience.",
   "start_url": "/",
   "display": "standalone",

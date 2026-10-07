@@ -213,7 +213,7 @@ export async function fetchSongById(songId) {
   const fallback = {
     id: songId,
     title: 'Track ' + songId,
-    artist: 'Pawtify Stream',
+    artist: 'MRTune Stream',
     album: 'Single',
     coverUrl: `https://i.ytimg.com/vi/${songId}/hqdefault.jpg`,
     audioUrl: songId,
